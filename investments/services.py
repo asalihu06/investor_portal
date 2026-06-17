@@ -59,11 +59,11 @@ def calculate_return(investment):
     return investment.investment_amount * rate
 
 
+
 def generate_payout(investment, generated_by):
     if investment.status != 'active':
         raise ValueError("Payouts can only be generated for active investments.")
-
-    return_amount = calculate_return(investment)
+    return_amount = investment.expected_return()
 
     payout = Payout.objects.create(
         investment=investment,
@@ -85,11 +85,10 @@ def generate_payout(investment, generated_by):
         action='Payout Generated',
         model_name='Payout',
         object_id=payout.id,
-        details=f"Payout of {return_amount} generated for investment {investment.id} belonging to {investment.investor.user.username}"
+        details=f"{investment.payout_frequency.capitalize()} payout of {return_amount} generated for investment {investment.id} — {investment.investor.user.username}"
     )
 
     return payout
-
 
 def complete_investment(investment, completed_by):
     if investment.status != 'active':
