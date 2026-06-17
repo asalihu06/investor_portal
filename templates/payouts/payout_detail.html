@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Payout Detail — Enigma Investor Portal{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto min-h-[90vh]">
+
+    <div class="mb-8 flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-[#0f2419]">Payout Detail</h1>
+        <a href="javascript:void(0)" onclick="history.back()"
+            class="bg-gray-100 text-gray-700 px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition text-sm">
+            &larr; Back
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-8">
+        <div class="space-y-4">
+            <div class="flex justify-between border-b pb-4">
+                <span class="text-sm text-gray-500">Investment</span>
+                <a href="{% url 'investment_detail' payout.investment.pk %}"
+                    class="text-[#1a3a28] hover:underline font-medium">
+                    {{ payout.investment.tier.name }}
+                </a>
+            </div>
+            <div class="flex justify-between border-b pb-4">
+                <span class="text-sm text-gray-500">Amount</span>
+                <span class="font-bold text-[#0f2419]">&#8358;{{ payout.amount|floatformat:2|intcomma }}</span>
+            </div>
+            <div class="flex justify-between border-b pb-4">
+                <span class="text-sm text-gray-500">Status</span>
+                <span class="text-sm font-semibold px-3 py-1 rounded-full
+                    {% if payout.status == 'paid' %}bg-green-100 text-green-700
+                    {% elif payout.status == 'pending' %}bg-yellow-100 text-yellow-700
+                    {% else %}bg-red-100 text-red-700{% endif %}">
+                    {{ payout.status }}
+                </span>
+            </div>
+            <div class="flex justify-between border-b pb-4">
+                <span class="text-sm text-gray-500">Payout Date</span>
+                <span class="font-medium">{{ payout.payout_date|date:"M d, Y"|default:"TBD" }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-sm text-gray-500">Created</span>
+                <span class="font-medium">{{ payout.created_at|date:"M d, Y H:i" }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

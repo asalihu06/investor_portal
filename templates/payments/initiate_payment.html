@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Complete Payment &mdash; Enigma Investor Portal{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-[#0f2419]">Complete Payment</h1>
+        <p class="text-gray-500 mt-1">Secure payment powered by Paystack</p>
+    </div>
+
+    <!-- Payment Summary -->
+    <div class="bg-white rounded-2xl shadow p-8 mb-6">
+        <h2 class="text-lg font-bold text-[#0f2419] mb-6">Payment Summary</h2>
+        <div class="space-y-4">
+            <div class="flex justify-between border-b pb-4">
+                <span class="text-sm text-gray-500">Investment Tier</span>
+                <span class="font-medium">{{ investment.tier.name }}</span>
+            </div>
+            <div class="flex justify-between border-b pb-4">
+                <span class="text-sm text-gray-500">Number of Assets</span>
+                <span class="font-medium">{{ investment.number_of_assets }}</span>
+            </div>
+            <div class="flex justify-between border-b pb-4">
+                <span class="text-sm text-gray-500">Return Rate</span>
+                <span class="font-medium text-green-600">{{ investment.tier.return_rate }}%</span>
+            </div>
+            <div class="flex justify-between border-b pb-4">
+                <span class="text-sm text-gray-500">Reference</span>
+                <span class="font-mono text-xs text-gray-600">{{ payment.reference }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-sm text-gray-500">Amount to Pay</span>
+                <span class="text-2xl font-bold text-[#0f2419]">N{{ investment.investment_amount|floatformat:2|intcomma }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pay Button -->
+    <div class="bg-white rounded-2xl shadow p-8">
+        <p class="text-sm text-gray-500 mb-6 text-center">
+            Click the button below to complete your payment securely via Paystack
+        </p>
+<!--        <p class="text-xs text-gray-400">Key: {{ public_key|slice:":15" }}...</p> -->
+<button
+    id="pay-button"
+    class="w-full bg-[#1a3a28] text-white py-2.5 rounded-full font-semibold hover:bg-[#0f2419] transition text-base">
+    Pay &#8358;{{ investment.investment_amount|floatformat:2|intcomma }}
+</button>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'investment_detail' investment.pk %}"
+                class="text-sm text-gray-500 hover:text-[#1a3a28]">
+                Cancel and go back
+            </a>
+        </div>
+
+        <div class="flex items-center justify-center gap-2 mt-6">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+            <p class="text-xs text-gray-400">Secured by Paystack</p>
+        </div>
+    </div>
+</div>
+
+<!-- Paystack Popup Script -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+    document.getElementById('pay-button').addEventListener('click', function() {
+        var handler = PaystackPop.setup({
+            key: '{{ public_key }}',
+            email: '{{ email }}',
+            amount: {{ amount_kobo }},
+            currency: 'NGN',
+            ref: '{{ payment.reference }}',
+            metadata: {
+                investment_id: {{ investment.pk }},
+                investor: '{{ request.user.username }}'
+            },
+            callback: function(response) {
+                window.location.href = "{% url 'payment_verify' payment.reference %}";
+            },
+            onClose: function() {
+                alert('Payment window closed. Your payment was not completed.');
+            }
+        });
+        handler.openIframe();
+    });
+</script>
+{% endblock %}
+

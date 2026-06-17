@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Select Asset &dash; Enigma Investor Portal{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold" style="color:#1a3a28;">Select Asset Type</h1>
+        <p class="text-gray-500 mt-1 text-sm">Step 2 of 3 &dash; Choose what you want to invest in</p>
+    </div>
+
+    <!-- Progress -->
+    <div class="flex items-center gap-2 mb-10">
+        <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white" style="background:#22543d;">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <span class="text-xs text-gray-400">Select Tier</span>
+        </div>
+        <div class="flex-1 h-px" style="background:#1a3a28;"></div>
+        <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white" style="background:#1a3a28;">2</div>
+            <span class="text-xs font-medium" style="color:#1a3a28;">Select Asset</span>
+        </div>
+        <div class="flex-1 h-px bg-gray-200"></div>
+        <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">3</div>
+            <span class="text-xs text-gray-400">Review & Pay</span>
+        </div>
+    </div>
+
+    <!-- Tier info banner -->
+    <div class="rounded-xl p-4 mb-6 flex justify-between items-center" style="background:#e8f0eb;">
+        <a href="{% url 'investment_create' %}" class="text-xs text-gray-500 hover:underline">Change tier</a>
+    </div>
+
+    <form method="POST" id="asset-form">
+        {% csrf_token %}
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="rounded-xl p-4 mb-4 text-sm" style="background:#fef2f2; color:#dc2626;">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Asset type cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            {% for item in asset_type_list %}
+            <label class="cursor-pointer">
+                <input type="radio" name="asset_type" value="{{ item.asset_type }}"
+                    class="hidden asset-radio"
+                    data-unit-price="{{ item.unit_price }}"
+                    data-weekly="{{ item.weekly_roi }}"
+                    data-monthly="{{ item.monthly_roi }}"
+                    required>
+                <div class="bg-white rounded-2xl p-6 border-2 border-transparent hover:border-gray-300 transition asset-type-card">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="font-bold text-gray-800">{{ item.asset_type }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">e.g. {{ item.sample.name }}</p>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded-full font-semibold" style="background:#e8f0eb; color:#1a3a28;">
+                            {{ tier.multiplier }}×
+                        </span>
+                    </div>
+
+                    <div class="space-y-1 text-sm mb-4">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Base Value</span>
+                            <span class="font-medium">N{{ item.sample.purchase_value|floatformat:2|intcomma }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Unit Price ({{ tier.multiplier }}×)</span>
+                            <span class="font-bold" style="color:#1a3a28;">N{{ item.unit_price|floatformat:2|intcomma }}</span>
+                        </div>
+                    </div>
+
+                    <div class="rounded-lg p-3" style="background:#f0f7f1;">
+                        <p class="text-xs text-gray-500 mb-1">ROI at {{ tier.return_rate }}%</p>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-gray-500">Weekly</span>
+                            <span class="font-bold" style="color:#1a3a28;">N{{ item.weekly_roi|floatformat:2|intcomma }}</span>
+                        </div>
+                        <div class="flex justify-between text-xs mt-1">
+                            <span class="text-gray-500">Monthly</span>
+                            <span class="font-bold" style="color:#1a3a28;">N{{ item.monthly_roi|floatformat:2|intcomma }}</span>
+                        </div>
+                    </div>
+                </div>
+            </label>
+            {% empty %}
+            <div class="col-span-2 text-center py-16 text-gray-400">
+                <p class="text-sm">No assets available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Quantity selector -->
+        <div id="quantity-section" class="bg-white rounded-2xl p-6 mb-6 hidden">
+            <p class="text-sm font-bold text-gray-700 mb-4">How many units?</p>
+            <div class="flex items-center gap-4 mb-6">
+                <button type="button" id="qty-minus"
+                    class="w-10 h-10 rounded-full border-2 flex items-center justify-center transition"
+                    style="border-color:#1a3a28; color:#1a3a28;">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                    </svg>
+                </button>
+                <span id="qty-display" class="text-3xl font-bold" style="color:#1a3a28; min-width:3rem; text-align:center;">{{ tier.multiplier }}</span>
+                <button type="button" id="qty-plus"
+                    class="w-10 h-10 rounded-full border-2 flex items-center justify-center transition"
+                    style="border-color:#1a3a28; color:#1a3a28;">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                </button>
+                <span class="text-xs text-gray-400">(max {{ max_quantity }})</span>
+            </div>
+            <input type="hidden" name="quantity" id="qty-input" value="{{ tier.multiplier }}">
+
+            <!-- Live total -->
+            <div class="rounded-xl p-4" style="background:#f7f6f2;">
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="text-gray-500">Unit Price</span>
+                    <span class="font-medium" id="unit-price-display">—</span>
+                </div>
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="text-gray-500">Quantity</span>
+                    <span class="font-medium" id="qty-summary">{{ tier.multiplier }}</span>
+                </div>
+                <div class="flex justify-between text-sm border-t pt-3 mt-2">
+                    <span class="font-bold text-gray-700">Total to Pay</span>
+                    <span class="font-bold" id="line-total" style="color:#1a3a28;">—</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-3">ROI will be confirmed by admin upon activation</p>
+            </div>
+        </div>
+
+        <div class="flex gap-4">
+            <button type="submit"
+                class="flex-1 text-white py-2.5 rounded-full font-semibold text-sm transition"
+                style="background:#1a3a28;">
+                Continue &rarr; Review & Pay
+            </button>
+            <a href="javascript:void(0)" onclick="history.back()"
+                class="flex-1 text-center bg-gray-100 text-gray-700 py-2.5 rounded-full font-semibold text-sm hover:bg-gray-200 transition">
+                &larr; Back
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const maxQty = {{ max_quantity }};
+    const minQty = {{ tier.get_multiplier }};
+    let currentUnitPrice = 0;
+    let currentWeekly = 0;
+    let currentMonthly = 0;
+    let qty = minQty;
+
+    function formatNaira(amount) {
+        return 'N' + parseFloat(amount).toLocaleString('en-NG', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function updateDisplay() {
+        document.getElementById('qty-display').textContent = qty;
+        document.getElementById('qty-input').value = qty;
+        document.getElementById('qty-summary').textContent = qty;
+        document.getElementById('line-total').textContent = formatNaira(currentUnitPrice * qty);
+        document.getElementById('weekly-total').textContent = formatNaira(currentWeekly * qty);
+        document.getElementById('monthly-total').textContent = formatNaira(currentMonthly * qty);
+    }
+
+    document.querySelectorAll('.asset-radio').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.asset-type-card').forEach(c => {
+                c.style.borderColor = 'transparent';
+            });
+            this.closest('label').querySelector('.asset-type-card').style.borderColor = '#1a3a28';
+
+            document.getElementById('quantity-section').classList.remove('hidden');
+
+            currentUnitPrice = parseFloat(this.dataset.unitPrice);
+            currentWeekly = parseFloat(this.dataset.weekly);
+            currentMonthly = parseFloat(this.dataset.monthly);
+
+            qty = minQty;
+            document.getElementById('unit-price-display').textContent = formatNaira(currentUnitPrice);
+            updateDisplay();
+        });
+    });
+
+    document.getElementById('qty-minus').addEventListener('click', () => {
+        if (qty > minQty) { qty--; updateDisplay(); }
+    });
+
+    document.getElementById('qty-plus').addEventListener('click', () => {
+        if (qty < maxQty) { qty++; updateDisplay(); }
+    });
+</script>
+{% endblock %}

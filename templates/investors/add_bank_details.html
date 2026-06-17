@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Bank Details{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-lg mx-auto">
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-[#0f2419]">Bank Details</h1>
+            <p class="text-gray-500 mt-1">Add your bank account for payouts</p>
+        </div>
+        <a href="{% url 'profile' %}"
+            class="bg-gray-100 text-gray-700 px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition text-sm">
+            ← Back
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-8">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
+                <input type="text" name="bank_name"
+                    value="{{ form.bank_name.value|default:'' }}"
+                    placeholder="e.g. Access Bank"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
+                {% if form.bank_name.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.bank_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Account Number</label>
+                <input type="text" name="account_number"
+                    value="{{ form.account_number.value|default:'' }}"
+                    placeholder="10-digit account number"
+                    maxlength="10"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
+                {% if form.account_number.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.account_number.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
+                <input type="text" name="account_name"
+                    value="{{ form.account_name.value|default:'' }}"
+                    placeholder="Name on bank account"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
+                {% if form.account_name.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.account_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div class="flex gap-4">
+                <button type="submit"
+                    class="flex-1 bg-[#1a3a28] text-white py-3 rounded-full font-semibold hover:bg-[#0f2419] transition text-sm">
+                    Save Bank Details
+                </button>
+                <a href="{% url 'profile' %}"
+                    class="flex-1 text-center bg-gray-100 text-gray-700 py-3 rounded-full font-semibold hover:bg-gray-200 transition text-sm">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

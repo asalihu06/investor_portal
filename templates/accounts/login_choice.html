@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Sign In — Enigma Investor Portal{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex">
+
+    <!-- Left panel -->
+    <div class="hidden lg:flex w-[46%] flex-col justify-between px-14 py-12" style="background-color: #0f2419;">
+        <a href="/" class="flex flex-col leading-tight">
+            <span class="font-bold text-lg tracking-widest uppercase" style="color: white;">Enigma</span>
+            <span class="font-bold text-lg tracking-widest uppercase" style="color: #e6b84a;">Transport</span>
+        </a>
+
+        <div>
+            <div class="w-10 h-0.5 mb-8" style="background-color: #c89b3c;"></div>
+            <h1 class="text-4xl font-bold leading-snug mb-5" style="color: white;">
+                Where capital<br>meets <span style="color: #e6b84a;">returns.</span>
+            </h1>
+            <p class="text-sm leading-relaxed max-w-xs" style="color: #9ca3af;">
+                Enigma Transport is a managed asset investment platform. Track your portfolio, monitor payouts, and grow your wealth — all in one place.
+            </p>
+
+            <div class="flex gap-4 mt-10">
+                <div class="rounded-2xl px-6 py-5 flex-1" style="background-color: #2d5240;">
+                    <p class="text-2xl font-bold" style="color: #e6b84a;">₦2B<span class="text-base">+</span></p>
+                    <p class="text-xs mt-1" style="color: #9ca3af;">Assets Under Management</p>
+                </div>
+                <div class="rounded-2xl px-6 py-5 flex-1" style="background-color: #2d5240;">
+                    <p class="text-2xl font-bold" style="color: #e6b84a;">5<span class="text-base">+</span></p>
+                    <p class="text-xs mt-1" style="color: #9ca3af;">Investment Tiers</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-xs" style="color: #4b5563;">© 2026 Enigma Transport Services Ltd.</p>
+    </div>
+
+    <!-- Right panel -->
+    <div class="flex-1 flex items-center justify-center px-6 py-12" style="background-color: #f7f6f2;">
+        <div class="w-full max-w-sm">
+
+            <!-- Mobile brand -->
+            <div class="lg:hidden text-center mb-10">
+                <p class="font-bold text-xl tracking-widest uppercase" style="color: #1a3a28;">
+                    Enigma <span style="color: #c89b3c;">Transport</span>
+                </p>
+            </div>
+
+            <h2 class="text-2xl font-bold mb-1" style="color: #1a3a28;">Welcome back</h2>
+            <p class="text-gray-500 text-sm mb-8">Choose how you'd like to sign in</p>
+
+            <div class="space-y-3">
+                <!-- Admin -->
+                <a href="{% url 'admin_login' %}"
+                    class="flex items-center gap-4 bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-sm transition group"
+                    style="text-decoration: none;">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: #e8f0eb;">
+                        <svg class="w-5 h-5" style="color: #1a3a28;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-800 text-sm">Admin Login</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Platform management access</p>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+
+                <!-- Investor -->
+                <a href="{% url 'investor_login' %}"
+                    class="flex items-center gap-4 bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-sm transition group"
+                    style="text-decoration: none;">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: #fdf3e3;">
+                        <svg class="w-5 h-5" style="color: #c89b3c;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-800 text-sm">Investor Login</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Access your investment portfolio</p>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+
+            <p class="text-center text-sm text-gray-400 mt-8">
+                New investor?
+                <a href="{% url 'register' %}" class="font-semibold hover:underline transition" style="color: #c89b3c;">
+                    Register here
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

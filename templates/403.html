@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Access Denied — Enigma Investor Portal{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-lg p-10 w-full max-w-md text-center">
+        <p class="text-6xl mb-4">🚫</p>
+        <h2 class="text-2xl font-bold text-[#0f2419] mb-2">Access Denied</h2>
+        <p class="text-gray-500 text-sm mb-8">You don't have permission to view this page.</p>
+        <a href="{% url 'dashboard' %}"
+            class="inline-block bg-[#1a3a28] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#0f2419] transition">
+            Go to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

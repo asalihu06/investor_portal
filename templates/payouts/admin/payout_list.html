@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}All Payouts — Enigma Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-[#0f2419]">All Payouts</h1>
+    <p class="text-gray-500 mt-1">{{ payouts.count }} total payouts</p>
+</div>
+
+<div class="bg-white rounded-2xl shadow overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+            <tr>
+                <th class="px-6 py-4 text-left">Investor</th>
+                <th class="px-6 py-4 text-left">Investment</th>
+                <th class="px-6 py-4 text-left">Amount</th>
+                <th class="px-6 py-4 text-left">Status</th>
+                <th class="px-6 py-4 text-left">Payout Date</th>
+                <th class="px-6 py-4 text-left">Action</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for payout in payouts %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-4 font-medium text-gray-800">
+                    {{ payout.investment.investor.user.username }}
+                </td>
+                <td class="px-6 py-4 text-gray-500">{{ payout.investment.tier.name }}</td>
+                <td class="px-6 py-4 font-bold text-[#0f2419]">₦{{ payout.amount|floatformat:2 }}</td>
+                <td class="px-6 py-4">
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                        {% if payout.status == 'paid' %}bg-green-100 text-green-700
+                        {% elif payout.status == 'pending' %}bg-yellow-100 text-yellow-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ payout.status }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-gray-500">{{ payout.payout_date|date:"M d, Y"|default:"TBD" }}</td>
+                <td class="px-6 py-4">
+                    {% if payout.status == 'pending' %}
+                    <form method="POST" action="{% url 'admin_payout_mark_paid' payout.pk %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="bg-[#1a3a28] text-white px-4 py-2 rounded-full text-xs hover:bg-[#0f2419] transition">
+                            Mark Paid
+                        </button>
+                    </form>
+                    {% else %}
+                    <span class="text-gray-400 text-xs">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-6 py-16 text-center text-gray-400">No payouts yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

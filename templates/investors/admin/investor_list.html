@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Manage Investors — Enigma Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-8 flex justify-between items-center">
+    <div>
+        <h1 class="text-3xl font-bold text-[#0f2419]">Investors</h1>
+        <p class="text-gray-500 mt-1">{{ investors.count }} total investors</p>
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl shadow overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+            <tr>
+                <th class="px-6 py-4 text-left">Investor</th>
+                <th class="px-6 py-4 text-left">Phone</th>
+                <th class="px-6 py-4 text-left">KYC</th>
+                <th class="px-6 py-4 text-left">Investments</th>
+                <th class="px-6 py-4 text-left">Joined</th>
+                <th class="px-6 py-4 text-left"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for investor in investors %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-4">
+                    <p class="font-medium text-gray-800">{{ investor.user.username }}</p>
+                    <p class="text-xs text-gray-500">{{ investor.user.email }}</p>
+                </td>
+                <td class="px-6 py-4 text-gray-600">{{ investor.phone_number }}</td>
+                <td class="px-6 py-4">
+                    {% if investor.kyc_verified %}
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Verified</span>
+                    {% else %}
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">Pending</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 font-medium text-[#0f2419]">{{ investor.investments.count }}</td>
+                <td class="px-6 py-4 text-gray-500">{{ investor.created_at|date:"M d, Y" }}</td>
+                <td class="px-6 py-4">
+                    <a href="{% url 'admin_investor_detail' investor.pk %}"
+                        class="bg-[#1a3a28] text-white px-4 py-2 rounded-full text-xs hover:bg-[#0f2419] transition">
+                        View
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-6 py-16 text-center text-gray-400">No investors yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

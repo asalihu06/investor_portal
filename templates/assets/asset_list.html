@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}My Assets &mdash; Enigma Investor Portal{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-[#0f2419]">My Assets</h1>
+    <p class="text-gray-500 mt-1">Transport assets allocated to your investments</p>
+</div>
+
+{% if allocations %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for allocation in allocations %}
+    <div class="bg-white rounded-2xl shadow p-6 hover:shadow-md transition">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="font-bold text-[#0f2419]">{{ allocation.asset.name }}</p>
+                <p class="text-sm text-gray-500">{{ allocation.asset.asset_type }}</p>
+            </div>
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700">
+                Allocated
+            </span>
+        </div>
+        <div class="space-y-2 mb-6">
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">Asset Code</span>
+                <span class="font-medium">{{ allocation.asset.asset_code }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">Current Value</span>
+                <span class="font-bold text-[#0f2419]">₦{{ allocation.asset.current_value|floatformat:2 }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">Investment</span>
+                <span class="font-medium">{{ allocation.investment.tier.name }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">Allocated</span>
+                <span class="font-medium">{{ allocation.allocated_at|date:"M d, Y" }}</span>
+            </div>
+        </div>
+        <a href="{% url 'investment_detail' allocation.investment.pk %}"
+            class="block text-center bg-[#1a3a28] text-white py-2 rounded-full text-sm hover:bg-[#0f2419] transition">
+            View Investment
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-2xl shadow p-16 text-center">
+    <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2-1h7l1 1z"/>
+    </svg>
+    <p class="text-gray-500 text-lg mb-4">No assets yet</p>
+    <a href="{% url 'investment_create' %}"
+        class="inline-block bg-[#1a3a28] text-white px-6 py-2 rounded-full text-sm hover:bg-[#0f2419] transition">
+        Make an Investment
+    </a>
+</div>
+{% endif %}
+{% endblock %}

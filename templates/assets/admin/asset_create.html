@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}Add Asset — Enigma Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-[#0f2419]">Add Asset</h1>
+            <p class="text-gray-500 mt-1">Asset code will be generated automatically</p>
+        </div>
+        <a href="{% url 'admin_asset_list' %}"
+            class="bg-gray-100 text-gray-700 px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition text-sm">
+            ← Back
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-8">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Asset Name</label>
+                <input type="text" name="name"
+                    value="{{ form.name.value|default:'' }}"
+                    placeholder="e.g. Keke Napep"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
+                {% if form.name.errors %}<p class="text-red-500 text-xs mt-1">{{ form.name.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Asset Type</label>
+                <input type="text" name="asset_type"
+                    value="{{ form.asset_type.value|default:'' }}"
+                    placeholder="e.g. Tricycle, Sedan, SUV, Bike"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
+                <p class="text-xs text-gray-400 mt-1">Used to auto-generate asset code e.g. Tricycle → T-001</p>
+                {% if form.asset_type.errors %}<p class="text-red-500 text-xs mt-1">{{ form.asset_type.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Purchase Value (₦)</label>
+                <input type="number" name="purchase_value" min="0" step="0.01"
+                    value="{{ form.purchase_value.value|default:'' }}"
+                    placeholder="e.g. 4000000"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
+                {% if form.purchase_value.errors %}<p class="text-red-500 text-xs mt-1">{{ form.purchase_value.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Service Charge (₦)</label>
+                    <input type="number" name="service_charge" min="0" step="0.01"
+                        value="{{ form.service_charge.value|default:'' }}"
+                        placeholder="e.g. 50000"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
+                    <p class="text-xs text-gray-400 mt-1">One-time service charge</p>
+                    {% if form.service_charge.errors %}<p class="text-red-500 text-xs mt-1">{{ form.service_charge.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Management Fee (₦)</label>
+                    <input type="number" name="management_fee" min="0" step="0.01"
+                        value="{{ form.management_fee.value|default:'' }}"
+                        placeholder="e.g. 30000"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
+                    <p class="text-xs text-gray-400 mt-1">Management fee</p>
+                    {% if form.management_fee.errors %}<p class="text-red-500 text-xs mt-1">{{ form.management_fee.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select name="status"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
+                    {% for value, label in form.status.field.choices %}
+                    <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if form.status.errors %}<p class="text-red-500 text-xs mt-1">{{ form.status.errors.0 }}</p>{% endif %}
+            </div>
+
+            <!-- Total Cost Preview -->
+            <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                <p class="text-sm font-bold text-gray-700 mb-1">Total Cost Preview</p>
+                <p class="text-xs text-gray-500">Purchase Value + Service Charge + Management Fee</p>
+                <p class="text-lg font-bold text-[#0f2419] mt-2" id="total-preview">₦0.00</p>
+            </div>
+
+            <div class="flex gap-4">
+                <button type="submit"
+                    class="flex-1 bg-[#1a3a28] text-white py-3 rounded-full font-semibold hover:bg-[#0f2419] transition text-sm">
+                    Save Asset
+                </button>
+                <a href="{% url 'admin_asset_list' %}"
+                    class="flex-1 text-center bg-gray-100 text-gray-700 py-3 rounded-full font-semibold hover:bg-gray-200 transition text-sm">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function updateTotal() {
+        const purchase = parseFloat(document.querySelector('[name="purchase_value"]').value) || 0;
+        const service = parseFloat(document.querySelector('[name="service_charge"]').value) || 0;
+        const management = parseFloat(document.querySelector('[name="management_fee"]').value) || 0;
+        const total = purchase + service + management;
+        document.getElementById('total-preview').textContent = '₦' + total.toLocaleString('en-NG', {
+            minimumFractionDigits: 2, maximumFractionDigits: 2
+        });
+    }
+    document.querySelector('[name="purchase_value"]').addEventListener('input', updateTotal);
+    document.querySelector('[name="service_charge"]').addEventListener('input', updateTotal);
+    document.querySelector('[name="management_fee"]').addEventListener('input', updateTotal);
+</script>
+{% endblock %}
+

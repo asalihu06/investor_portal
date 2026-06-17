@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}All Investments &mdash; Enigma Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-8 flex justify-between items-center">
+    <div>
+        <h1 class="text-3xl font-bold text-[#0f2419]">All Investments</h1>
+        <p class="text-gray-500 mt-1">{{ investments.count }} total investments</p>
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl shadow overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+            <tr>
+                <th class="px-6 py-4 text-left">Investor</th>
+                <th class="px-6 py-4 text-left">Tier</th>
+                <th class="px-6 py-4 text-left">Amount</th>
+                <th class="px-6 py-4 text-left">Duration</th>
+                <th class="px-6 py-4 text-left">Status</th>
+                <th class="px-6 py-4 text-left">Date</th>
+                <th class="px-6 py-4 text-left"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for investment in investments %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-4">
+                    <p class="font-medium text-gray-800">{{ investment.investor.user.username }}</p>
+                    <p class="text-xs text-gray-500">{{ investment.investor.user.email }}</p>
+                </td>
+                <td class="px-6 py-4 text-gray-600">{{ investment.tier.name }}</td>
+                <td class="px-6 py-4 font-bold text-[#0f2419]">
+                    &#8358;{{ investment.investment_amount|floatformat:2 }}
+                </td>
+                <td class="px-6 py-4 text-gray-500">
+                    {% if investment.duration_months %}
+                        {{ investment.duration_months }} months
+                    {% else %}
+                        Not set
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                        {% if investment.status == 'active' %}bg-green-100 text-green-700
+                        {% elif investment.status == 'pending' %}bg-yellow-100 text-yellow-700
+                        {% elif investment.status == 'completed' %}bg-blue-100 text-blue-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ investment.get_status_display }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-gray-500">{{ investment.created_at|date:"M d, Y" }}</td>
+                <td class="px-6 py-4">
+                    <a href="{% url 'manage_investment' investment.pk %}"
+                        class="bg-[#1a3a28] text-white px-4 py-2 rounded-full text-xs hover:bg-[#0f2419] transition">
+                        Manage
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="px-6 py-16 text-center text-gray-400">No investments yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Manage Investment{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-8 flex justify-between items-center">
+    <div>
+        <h1 class="text-3xl font-bold text-[#0f2419]">Manage Investment</h1>
+        <p class="text-gray-500 mt-1">{{ investment.investor.user.username }} &mdash; {{ investment.tier.name }}</p>
+    </div>
+    <a href="javascript:void(0)" onclick="history.back()"
+        class="bg-gray-100 text-gray-700 px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition text-sm">
+        &larr; Back
+    </a>
+</div>
+
+<!-- Investment Info -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-[#e6b84a]">
+        <p class="text-sm text-gray-500">Amount</p>
+        <p class="text-2xl font-bold text-[#0f2419] mt-1">&#8358;{{ investment.investment_amount|floatformat:2 | intcomma }}</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-blue-400">
+        <p class="text-sm text-gray-500">Return Rate</p>
+        <p class="text-2xl font-bold text-[#0f2419] mt-1">{{ investment.tier.return_rate }}%</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-yellow-400">
+        <p class="text-sm text-gray-500">Assets</p>
+        <p class="text-2xl font-bold text-[#0f2419] mt-1">{{ allocations.count }} / {{ investment.number_of_assets }}</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-purple-400">
+        <p class="text-sm text-gray-500">Status</p>
+        <span class="inline-block mt-2 text-sm font-semibold px-4 py-1 rounded-full
+            {% if investment.status == 'active' %}bg-green-100 text-green-700
+            {% elif investment.status == 'pending' %}bg-yellow-100 text-yellow-700
+            {% elif investment.status == 'completed' %}bg-blue-100 text-blue-700
+            {% else %}bg-red-100 text-red-700{% endif %}">
+            {{ investment.get_status_display }}
+        </span>
+    </div>
+</div>
+
+<!-- Active Investment Overview -->
+{% if investment.status == 'active' %}
+<div class="bg-green-50 border border-green-200 rounded-2xl p-6 mb-6">
+    <h2 class="text-lg font-bold text-[#0f2419] mb-4">Investment Overview</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div>
+            <p class="text-sm text-gray-500">Payout Frequency</p>
+            <p class="font-bold text-[#0f2419] mt-1 capitalize">{{ investment.payout_frequency }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">Expected Return</p>
+            <p class="font-bold text-green-600 mt-1">&#8358;{{ investment.expected_return|floatformat:2 | intcomma }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">Start Date</p>
+            <p class="font-bold text-[#0f2419] mt-1">{{ investment.start_date|date:"M d, Y"|default:"—" }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">End Date</p>
+            <p class="font-bold text-[#0f2419] mt-1">{{ investment.end_date|date:"M d, Y"|default:"—" }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">Duration</p>
+            <p class="font-bold text-[#0f2419] mt-1">
+                {% if investment.duration_months %}{{ investment.duration_months }} months{% else %}—{% endif %}
+            </p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">Months Remaining</p>
+            <p class="font-bold mt-1
+                {% if investment.months_remaining == 0 %}text-red-500
+                {% elif investment.months_remaining <= 3 %}text-yellow-600
+                {% else %}text-green-600{% endif %}">
+                {% if investment.months_remaining is not None %}{{ investment.months_remaining }} months{% else %}—{% endif %}
+            </p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">Service Charge</p>
+            <p class="font-bold text-[#0f2419] mt-1">&#8358;{{ investment.service_charge|floatformat:2 | intcomma }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">Management Fee</p>
+            <p class="font-bold text-[#0f2419] mt-1">&#8358;{{ investment.management_fee|floatformat:2 | intcomma }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Investor Bank Details -->
+<div class="bg-white rounded-2xl shadow p-8 mb-6">
+    <h2 class="text-lg font-bold text-[#0f2419] mb-4">Investor Bank Details</h2>
+    <div class="space-y-3">
+        <div class="flex justify-between border-b pb-3">
+            <span class="text-sm text-gray-500">Bank Name</span>
+            <span class="font-medium">{{ investment.investor.bank_name|default:"Not provided" }}</span>
+        </div>
+        <div class="flex justify-between border-b pb-3">
+            <span class="text-sm text-gray-500">Account Number</span>
+            <span class="font-bold text-[#0f2419] tracking-widest">{{ investment.investor.account_number|default:"Not provided" }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-sm text-gray-500">Account Name</span>
+            <span class="font-medium">{{ investment.investor.account_name|default:"Not provided" }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Assets (pending) -->
+{% if investment.status == 'pending' %}
+<div class="bg-white rounded-2xl shadow p-8 mb-6">
+    <h2 class="text-lg font-bold text-[#0f2419] mb-2">Assign Assets</h2>
+    <p class="text-sm text-gray-500 mb-6">Select exactly {{ investment.number_of_assets }} asset(s) to assign to this investment. Charges will be calculated automatically.</p>
+
+    {% if allocations.count < investment.number_of_assets %}
+    <form method="POST" action="{% url 'admin_assign_assets' investment.pk %}">
+        {% csrf_token %}
+        <div class="space-y-3 mb-6">
+            {% for asset in available_assets %}
+            <label class="flex items-center justify-between border rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition">
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" name="asset_ids" value="{{ asset.pk }}"
+                        class="w-4 h-4 accent-[#1a3a28]">
+                    <div>
+                        <p class="font-medium text-gray-800">{{ asset.name }}</p>
+                        <p class="text-sm text-gray-500">{{ asset.asset_type }} · {{ asset.asset_code }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-[#0f2419]">&#8358;{{ asset.current_value|floatformat:2 | intcomma }}</p>
+                    <p class="text-xs text-gray-400">SC: &#8358;{{ asset.service_charge|floatformat:2 | intcomma }} · MF: &#8358;{{ asset.management_fee|floatformat:2 | intcomma }}</p>
+                </div>
+            </label>
+            {% empty %}
+            <p class="text-gray-400 text-sm text-center py-4">No available assets.</p>
+            {% endfor %}
+        </div>
+        {% if available_assets %}
+        <button type="submit"
+            class="bg-[#1a3a28] text-white px-6 py-3 rounded-full font-medium hover:bg-[#0f2419] transition text-sm">
+            Assign Selected Assets
+        </button>
+        {% endif %}
+    </form>
+    {% else %}
+    <p class="text-green-600 text-sm font-medium">All {{ investment.number_of_assets }} asset(s) assigned.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Admin Actions -->
+<div class="bg-white rounded-2xl shadow p-8 mb-6">
+    <h2 class="text-lg font-bold text-[#0f2419] mb-6">Admin Actions</h2>
+
+   {% if investment.status == 'pending' %}
+<div class="mb-6">
+    <h3 class="text-sm font-bold text-gray-700 mb-4">Activate Investment</h3>
+    <form method="POST" action="{% url 'activate_investment' investment.pk %}">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">ROI Rate (%)</label>
+                <input type="number" name="roi_rate" min="0" max="100" step="0.01" required
+                    placeholder="e.g. 25.00"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none">
+                <p class="text-xs text-gray-400 mt-1">Annual return rate agreed with investor</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Duration (months)</label>
+                <input type="number" name="duration_months" min="1" max="60" required
+                    placeholder="e.g. 12"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none">
+                <p class="text-xs text-gray-400 mt-1">Agreed hire purchase duration</p>
+            </div>
+        </div>
+        <button type="submit"
+            class="text-white px-6 py-3 rounded-full font-medium text-sm transition"
+            style="background:#1a3a28;">
+            Activate Investment
+        </button>
+    </form>
+</div>
+    <div class="border-t pt-6">
+        <h3 class="text-sm font-bold text-gray-700 mb-4">Cancel Investment</h3>
+        <form method="POST" action="{% url 'cancel_investment' investment.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                class="bg-red-500 text-white px-6 py-3 rounded-full font-medium hover:bg-red-600 transition text-sm">
+                Cancel Investment
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if investment.status == 'active' %}
+    <div class="flex flex-wrap gap-4">
+        <form method="POST" action="{% url 'generate_payout' investment.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                class="bg-blue-500 text-white px-6 py-3 rounded-full font-medium hover:bg-blue-600 transition text-sm flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Generate Payout
+            </button>
+        </form>
+        <form method="POST" action="{% url 'complete_investment' investment.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                class="bg-[#1a3a28] text-white px-6 py-3 rounded-full font-medium hover:bg-[#0f2419] transition text-sm flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Mark as Completed
+            </button>
+        </form>
+        <form method="POST" action="{% url 'cancel_investment' investment.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                class="bg-red-500 text-white px-6 py-3 rounded-full font-medium hover:bg-red-600 transition text-sm flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                Cancel Investment
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if investment.status == 'completed' or investment.status == 'cancelled' %}
+    <p class="text-gray-400 text-sm">No actions available for {{ investment.get_status_display }} investments.</p>
+    {% endif %}
+</div>
+
+<!-- Allocated Assets -->
+<div class="bg-white rounded-2xl shadow p-8 mb-6">
+    <h2 class="text-lg font-bold text-[#0f2419] mb-6">Allocated Assets</h2>
+    {% if allocations %}
+    <div class="space-y-3">
+        {% for allocation in allocations %}
+        <div class="flex justify-between items-center border rounded-xl p-4">
+            <div>
+                <p class="font-medium text-gray-800">{{ allocation.asset.name }}</p>
+                <p class="text-sm text-gray-500">{{ allocation.asset.asset_type }} · {{ allocation.asset.asset_code }}</p>
+            </div>
+            <div class="text-right">
+                <p class="font-bold text-[#0f2419]">&#8358;{{ allocation.asset.current_value|floatformat:2 | intcomma }}</p>
+                <p class="text-xs text-gray-400">SC: &#8358;{{ allocation.asset.service_charge|floatformat:2 | intcomma }} · MF: &#8358;{{ allocation.asset.management_fee|floatformat:2 | intcomma }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-400 text-sm text-center py-6">No assets allocated yet.</p>
+    {% endif %}
+</div>
+
+<!-- Transactions -->
+<div class="bg-white rounded-2xl shadow p-8 mb-6">
+    <h2 class="text-lg font-bold text-[#0f2419] mb-6">Transactions</h2>
+    {% if transactions %}
+    <div class="space-y-3">
+        {% for tx in transactions %}
+        <div class="flex justify-between items-center border rounded-xl p-4">
+            <div>
+                <p class="font-medium text-gray-800 capitalize">{{ tx.transaction_type }}</p>
+                <p class="text-sm text-gray-500">{{ tx.reference }} · {{ tx.created_at|date:"M d, Y H:i" }}</p>
+            </div>
+            <div class="text-right">
+                <p class="font-bold text-[#0f2419]">&#8358;{{ tx.amount|floatformat:2 | intcomma }}</p>
+                <span class="text-xs px-2 py-1 rounded-full
+                    {% if tx.status == 'confirmed' %}bg-green-100 text-green-700
+                    {% elif tx.status == 'pending' %}bg-yellow-100 text-yellow-700
+                    {% else %}bg-red-100 text-red-700{% endif %}">
+                    {{ tx.status }}
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-400 text-sm text-center py-6">No transactions yet.</p>
+    {% endif %}
+</div>
+
+<!-- Payouts -->
+<div class="bg-white rounded-2xl shadow p-8">
+    <h2 class="text-lg font-bold text-[#0f2419] mb-6">Payouts</h2>
+    {% if payouts %}
+    <div class="space-y-3">
+        {% for payout in payouts %}
+        <div class="flex justify-between items-center border rounded-xl p-4">
+            <div>
+                <p class="font-medium text-gray-800">Payout</p>
+                <p class="text-sm text-gray-500">{{ payout.payout_date|date:"M d, Y" }}</p>
+            </div>
+            <div class="text-right">
+                <p class="font-bold text-[#0f2419]">&#8358;{{ payout.amount|floatformat:2 | intcomma }}</p>
+                <span class="text-xs px-2 py-1 rounded-full
+                    {% if payout.status == 'paid' %}bg-green-100 text-green-700
+                    {% elif payout.status == 'pending' %}bg-yellow-100 text-yellow-700
+                    {% else %}bg-red-100 text-red-700{% endif %}">
+                    {{ payout.status }}
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-400 text-sm text-center py-6">No payouts yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

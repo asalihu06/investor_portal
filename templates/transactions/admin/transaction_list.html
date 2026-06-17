@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}All Transactions — Enigma Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-[#0f2419]">All Transactions</h1>
+    <p class="text-gray-500 mt-1">{{ transactions.count }} total transactions</p>
+</div>
+
+<div class="bg-white rounded-2xl shadow overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+            <tr>
+                <th class="px-6 py-4 text-left">Investor</th>
+                <th class="px-6 py-4 text-left">Type</th>
+                <th class="px-6 py-4 text-left">Investment</th>
+                <th class="px-6 py-4 text-left">Amount</th>
+                <th class="px-6 py-4 text-left">Status</th>
+                <th class="px-6 py-4 text-left">Reference</th>
+                <th class="px-6 py-4 text-left">Date</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for tx in transactions %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-4">
+                    <p class="font-medium text-gray-800">{{ tx.investment.investor.user.username }}</p>
+                </td>
+                <td class="px-6 py-4 capitalize font-medium">{{ tx.transaction_type }}</td>
+                <td class="px-6 py-4 text-gray-500">{{ tx.investment.tier.name }}</td>
+                <td class="px-6 py-4 font-bold text-[#0f2419]">&#8358;{{ tx.amount|floatformat:2|intcomma }}</td>
+                <td class="px-6 py-4">
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                        {% if tx.status == 'confirmed' %}bg-green-100 text-green-700
+                        {% elif tx.status == 'pending' %}bg-yellow-100 text-yellow-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ tx.status }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-gray-500 text-xs">{{ tx.reference|default:"—" }}</td>
+                <td class="px-6 py-4 text-gray-500">{{ tx.created_at|date:"M d, Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="px-6 py-16 text-center text-gray-400">No transactions yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

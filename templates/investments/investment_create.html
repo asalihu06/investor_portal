@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block title %}New Investment &mdash; Enigma Investor Portal{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-[#0f2419]">New Investment</h1>
+        <p class="text-gray-500 mt-1">Step 1 of 3 &mdash; Choose your investment tier</p>
+    </div>
+
+    <!-- Progress -->
+    <div class="flex items-center gap-2 mb-10">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-[#1a3a28] text-white flex items-center justify-center text-sm font-bold">1</div>
+            <span class="text-sm font-medium text-[#0f2419]">Select Tier</span>
+        </div>
+        <div class="flex-1 h-px bg-gray-200"></div>
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-sm font-bold">2</div>
+            <span class="text-sm text-gray-400">Select Assets</span>
+        </div>
+        <div class="flex-1 h-px bg-gray-200"></div>
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-sm font-bold">3</div>
+            <span class="text-sm text-gray-400">Review &amp; Pay</span>
+        </div>
+    </div>
+
+    <form method="POST" id="tier-form">
+        {% csrf_token %}
+        <!-- Tier Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" id="tier-grid">
+            {% for tier in tiers %}
+            <label class="cursor-pointer tier-label">
+                <input type="radio" name="tier" value="{{ tier.pk }}"
+                    class="hidden tier-radio"
+                    data-min="{{ tier.minimum_assets }}"
+                    data-max="{{ tier.maximum_assets }}"
+                    required>
+                <div class="bg-white rounded-2xl shadow p-6 border-2 border-transparent hover:border-gray-300 transition tier-card h-full">
+
+                    <!-- Header -->
+                    <div class="flex justify-between items-start mb-5">
+                        <div>
+                            <h3 class="text-base font-bold" style="color:#1a3a28;">{{ tier.name }}</h3>
+                            <p class="text-xs text-gray-400 mt-0.5">
+                                {% if tier.name == 'PREMIUM' %}For serious investors{% else %}Great for first-timers{% endif %}
+                            </p>
+                        </div>
+                        <span class="text-sm font-bold px-3 py-1 rounded-full" style="background:#e8f0eb; color:#1a3a28;">
+                            {{ tier.return_rate }}% ROI
+                        </span>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="space-y-3 text-sm border-t pt-4">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Price per unit</span>
+                            <span class="font-medium" style="color:#1a3a28;">
+                                {% if tier.name == 'PREMIUM' %}3&times; asset value{% else %}1&times; asset value{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Max units</span>
+                            <span class="font-medium">{{ tier.maximum_assets }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Payout</span>
+                            <span class="font-medium">Weekly or Monthly</span>
+                        </div>
+                    </div>
+
+                    <!-- Selected indicator -->
+                    <div class="mt-4 pt-4 border-t hidden selected-check">
+                        <div class="flex items-center gap-2 text-xs font-semibold" style="color:#1a3a28;">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Selected
+                        </div>
+                    </div>
+                </div>
+            </label>
+            {% endfor %}
+        </div>
+
+        <!-- Payout Frequency -->
+        <div class="bg-white rounded-2xl shadow p-6 mb-6">
+            <h3 class="text-base font-bold text-[#0f2419] mb-4">Payout Frequency</h3>
+            <p class="text-sm text-gray-500 mb-4">How often do you want to receive your returns?</p>
+            <div class="grid grid-cols-2 gap-4">
+                <label class="cursor-pointer">
+                    <input type="radio" name="frequency" value="weekly" class="hidden peer" checked>
+                    <div class="border-2 border-transparent peer-checked:border-[#1a3a28] rounded-xl p-5 text-center hover:border-[#e6b84a] transition">
+                        <svg class="w-8 h-8 text-[#1a3a28] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <p class="font-bold text-[#0f2419] text-sm">Weekly</p>
+                        <p class="text-xs text-gray-500 mt-1">Returns every 7 days</p>
+                    </div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="radio" name="frequency" value="monthly" class="hidden peer">
+                    <div class="border-2 border-transparent peer-checked:border-[#1a3a28] rounded-xl p-5 text-center hover:border-[#e6b84a] transition">
+                        <svg class="w-8 h-8 text-[#1a3a28] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <p class="font-bold text-[#0f2419] text-sm">Monthly</p>
+                        <p class="text-xs text-gray-500 mt-1">Returns every 30 days</p>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex gap-4">
+            <button type="submit"
+                class="flex-1 bg-[#1a3a28] text-white py-3 rounded-full font-semibold hover:bg-[#0f2419] transition text-sm">
+                Continue &rarr; Select Assets
+            </button>
+            <a href="{% url 'investment_list' %}"
+                class="flex-1 text-center bg-gray-100 text-gray-700 py-3 rounded-full font-semibold hover:bg-gray-200 transition text-sm">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+<script>
+    document.querySelectorAll('.tier-radio').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Reset all cards
+            document.querySelectorAll('.tier-card').forEach(c => {
+                c.style.borderColor = 'transparent';
+            });
+            document.querySelectorAll('.selected-check').forEach(c => {
+                c.classList.add('hidden');
+            });
+
+            // Highlight selected
+            const card = this.closest('label').querySelector('.tier-card');
+            card.style.borderColor = '#1a3a28';
+            this.closest('label').querySelector('.selected-check').classList.remove('hidden');
+        });
+    });
+
+    // Also make clicking anywhere on the card trigger selection
+    document.querySelectorAll('.tier-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const radio = this.closest('label').querySelector('.tier-radio');
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change'));
+        });
+    });
+</script>
+{% endblock %}

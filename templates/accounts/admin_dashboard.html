@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Admin Dashboard &mdash; Enigma Investor Portal{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-[#0f2419]">Admin Dashboard</h1>
+    <p class="text-gray-500 mt-1">Platform overview and management</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-[#e6b84a]">
+        <p class="text-sm text-gray-500">Total Investors</p>
+        <p class="text-3xl font-bold text-[#0f2419] mt-1">{{ total_investors|intcomma }}</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-blue-400 overflow-hidden">
+        <p class="text-sm text-gray-500">Total Investments</p>
+        <p class="text-xl sm:text-2xl font-bold text-[#0f2419] mt-1 truncate" title="₦{{ total_investments|floatformat:2|intcomma }}">
+            &#8358;{{ total_investments|floatformat:2|intcomma }}
+        </p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-yellow-400">
+        <p class="text-sm text-gray-500">Pending KYC</p>
+        <p class="text-3xl font-bold text-yellow-600 mt-1">{{ pending_kyc|intcomma }}</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-green-400">
+        <p class="text-sm text-gray-500">Active Investments</p>
+        <p class="text-3xl font-bold text-green-600 mt-1">{{ active_investments|intcomma }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+    <!-- Recent Investments -->
+    <div class="bg-white rounded-2xl shadow p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-bold text-[#0f2419]">Recent Investments</h2>
+            <a href="{% url 'admin_investment_list' %}" class="text-sm text-[#1a3a28] hover:underline">Manage &rarr;</a>
+        </div>
+        {% if recent_investments %}
+        <div class="space-y-3">
+            {% for investment in recent_investments %}
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 border rounded-xl p-4">
+                <div class="min-w-0">
+                    <p class="font-medium text-gray-800 truncate">{{ investment.investor.user.username }}</p>
+                    <p class="text-sm text-gray-500 whitespace-nowrap">{{ investment.tier.name }} · {{ investment.created_at|date:"M d, Y" }}</p>
+                </div>
+                <div class="flex flex-wrap gap-2 items-center sm:justify-end sm:shrink-0">
+                    <p class="font-bold text-[#0f2419] text-sm whitespace-nowrap">₦{{ investment.investment_amount|floatformat:2|intcomma }}</p>
+                    <span class="text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap
+                        {% if investment.status == 'active' %}bg-green-100 text-green-700
+                        {% elif investment.status == 'pending' %}bg-yellow-100 text-yellow-700
+                        {% elif investment.status == 'completed' %}bg-blue-100 text-blue-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ investment.get_status_display }}
+                    </span>
+                    <a href="{% url 'manage_investment' investment.pk %}"
+                        class="bg-[#1a3a28] text-white px-3 py-1 rounded-full text-xs hover:bg-[#0f2419] transition whitespace-nowrap">
+                        Manage
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-400 text-sm text-center py-6">No investments yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="bg-white rounded-2xl shadow p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-bold text-[#0f2419]">Recent Transactions</h2>
+            <a href="{% url 'admin_transaction_list' %}" class="text-sm text-[#1a3a28] hover:underline">Manage &rarr;</a>
+        </div>
+        {% if recent_transactions %}
+        <div class="space-y-3">
+            {% for tx in recent_transactions %}
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 border rounded-xl p-4">
+                <div class="min-w-0">
+                    <p class="font-medium text-gray-800 capitalize truncate">{{ tx.transaction_type }}</p>
+                    <p class="text-sm text-gray-500 whitespace-nowrap">{{ tx.investment.investor.user.username }} · {{ tx.created_at|date:"M d, Y" }}</p>
+                </div>
+                <div class="flex flex-wrap gap-2 items-center sm:justify-end sm:shrink-0">
+                    <p class="font-bold text-[#0f2419] text-sm whitespace-nowrap">₦{{ tx.amount|floatformat:2|intcomma }}</p>
+                    <span class="text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap
+                        {% if tx.status == 'confirmed' %}bg-green-100 text-green-700
+                        {% elif tx.status == 'pending' %}bg-yellow-100 text-yellow-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ tx.status }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-400 text-sm text-center py-6">No transactions yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Admin Quick Actions -->
+<div class="bg-white rounded-2xl shadow p-8">
+    <h2 class="text-lg font-bold text-[#0f2419] mb-6">Admin Actions</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <a href="{% url 'admin_investor_list' %}"
+            class="bg-[#1a3a28] text-white text-center py-4 rounded-xl font-medium hover:bg-[#0f2419] transition text-sm">
+            Manage Investors
+        </a>
+        <a href="{% url 'admin_investment_list' %}"
+            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
+            Manage Investments
+        </a>
+        <a href="{% url 'admin_asset_list' %}"
+            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
+            Manage Assets
+        </a>
+        <a href="{% url 'admin_transaction_list' %}"
+            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
+            Manage Transactions
+        </a>
+        <a href="{% url 'admin_payout_list' %}"
+            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
+            Manage Payouts
+        </a>
+        <a href="{% url 'admin_auditlog_list' %}"
+            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
+            Audit Logs
+        </a>
+    </div>
+</div>
+{% endblock %}

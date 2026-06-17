@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — Enigma Investor Portal{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-[#0f2419]">Welcome, {{ user.username }}</h1>
+    <p class="text-gray-500 mt-1">Here's an overview of your investment activity.</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-[#e6b84a]">
+        <p class="text-sm text-gray-500">Total Investments</p>
+        <p class="text-3xl font-bold text-[#0f2419] mt-1">
+            {{ user.investorprofile.investments.count|default:"0" }}
+        </p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-yellow-400">
+        <p class="text-sm text-gray-500">Active Investments</p>
+        <p class="text-3xl font-bold text-[#0f2419] mt-1">
+            {{ user.investorprofile.investments.filter.count|default:"0" }}
+        </p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-blue-400">
+        <p class="text-sm text-gray-500">KYC Status</p>
+        <p class="text-lg font-bold mt-1 {% if user.investorprofile.kyc_verified %}text-green-600{% else %}text-red-500{% endif %}">
+            {% if user.investorprofile.kyc_verified %}Verified{% else %}Pending{% endif %}
+        </p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-purple-400">
+        <p class="text-sm text-gray-500">Account Role</p>
+        <p class="text-lg font-bold text-[#0f2419] mt-1 capitalize">{{ user.role }}</p>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="bg-white rounded-2xl shadow p-8">
+    <h2 class="text-lg font-bold text-[#0f2419] mb-6">Quick Actions</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="{% url 'investment_create' %}"
+            class="bg-[#1a3a28] text-white text-center py-4 rounded-xl font-medium hover:bg-[#0f2419] transition text-sm">
+            + New Investment
+        </a>
+        <a href="{% url 'investment_list' %}"
+            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
+            View Investments
+        </a>
+        <a href="{% url 'transaction_list' %}"
+            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
+            Transactions
+        </a>
+        <a href="{% url 'payout_list' %}"
+            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
+            Payouts
+        </a>
+    </div>
+</div>
+{% endblock %}

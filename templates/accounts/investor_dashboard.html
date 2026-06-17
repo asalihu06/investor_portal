@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Dashboard &mdash; Enigma Investor Portal{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="mb-8">
+    <p class="text-xs font-semibold uppercase tracking-widest text-gold mb-1">Investor Portal</p>
+    <h1 class="text-2xl sm:text-3xl font-bold text-forest-dark">Welcome back, {{ profile.user.username }}</h1>
+    <p class="text-gray-500 mt-1 text-sm">Here&rsquo;s an overview of your investment activity.</p>
+</div>
+
+{% if not profile.kyc_verified %}
+<div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 sm:p-5 mb-8 flex items-start gap-4">
+    <svg class="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    </svg>
+    <div>
+        <p class="font-semibold text-yellow-800 text-sm">KYC Verification Pending</p>
+        <p class="text-sm text-yellow-700 mt-0.5">Your identity has not been verified yet. Please contact support to complete verification.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Stats -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+        <div class="flex items-start justify-between mb-3">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Invested</p>
+            <span class="w-8 h-8 rounded-xl bg-forest/10 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </span>
+        </div>
+        <p class="text-xl sm:text-2xl font-bold text-forest-dark">&#8358;{{ total_invested|floatformat:2|intcomma }}</p>
+        <div class="mt-2 h-0.5 w-8 bg-gold rounded-full"></div>
+    </div>
+
+    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+        <div class="flex items-start justify-between mb-3">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Paid Out</p>
+            <span class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            </span>
+        </div>
+        <p class="text-xl sm:text-2xl font-bold text-forest-dark">&#8358;{{ total_paid_out|floatformat:2|intcomma }}</p>
+        <div class="mt-2 h-0.5 w-8 bg-amber-400 rounded-full"></div>
+    </div>
+
+    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+        <div class="flex items-start justify-between mb-3">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Weekly Return</p>
+            <span class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            </span>
+        </div>
+        <p class="text-xl sm:text-2xl font-bold text-green-600">&#8358;{{ total_weekly_return|floatformat:2|intcomma }}</p>
+        <div class="mt-2 h-0.5 w-8 bg-green-400 rounded-full"></div>
+    </div>
+
+    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+        <div class="flex items-start justify-between mb-3">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Next Payment</p>
+            <span class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </span>
+        </div>
+        <p class="text-lg sm:text-xl font-bold text-forest-dark">
+            {% if next_payment %}{{ next_payment|date:"M d, Y" }}{% else %}&mdash;{% endif %}
+        </p>
+        <div class="mt-2 h-0.5 w-8 bg-blue-400 rounded-full"></div>
+    </div>
+</div>
+
+<!-- Recent Investments -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 mb-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-sm font-bold text-forest-dark uppercase tracking-wider">Recent Investments</h2>
+        <a href="{% url 'investment_list' %}" class="text-xs font-semibold text-gold hover:text-gold-light transition uppercase tracking-wide">
+            View all &rarr;
+        </a>
+    </div>
+
+    {% with investments=profile.investments.all %}
+    {% if investments %}
+    <div class="space-y-3">
+        {% for investment in investments|slice:":5" %}
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 border border-gray-100 rounded-xl p-4 hover:bg-surface transition">
+            <div class="flex gap-3 items-center">
+                <div class="w-9 h-9 rounded-xl bg-forest/8 flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2-1h7l1 1z"/></svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-800 text-sm">{{ investment.tier.name }}</p>
+                    <p class="text-xs text-gray-400">{{ investment.number_of_assets }} asset{{ investment.number_of_assets|pluralize }} &middot; {{ investment.created_at|date:"M d, Y" }}</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-3 items-center sm:justify-end">
+                <span class="text-xs font-semibold px-3 py-1 rounded-full
+                    {% if investment.status == 'active' %}bg-green-50 text-green-700
+                    {% elif investment.status == 'pending' %}bg-yellow-50 text-yellow-700
+                    {% elif investment.status == 'completed' %}bg-blue-50 text-blue-700
+                    {% else %}bg-red-50 text-red-700{% endif %}">
+                    {{ investment.get_status_display }}
+                </span>
+                <a href="{% url 'investment_detail' investment.pk %}"
+                    class="text-xs font-semibold bg-forest text-white px-4 py-1.5 rounded-full hover:bg-forest-light transition">
+                    View
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+        <div class="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+            <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>
+        </div>
+        <p class="text-sm text-gray-400 mb-4">No investments yet.</p>
+        <a href="{% url 'investment_create' %}"
+            class="inline-block bg-forest text-white text-sm font-medium px-6 py-2.5 rounded-full hover:bg-forest-light transition">
+            Make Your First Investment
+        </a>
+    </div>
+    {% endif %}
+    {% endwith %}
+</div>
+
+<!-- Quick Actions -->
+<div class="bg-forest-dark rounded-2xl p-6 sm:p-8">
+    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-5">Quick Actions</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <a href="{% url 'investment_create' %}"
+            class="bg-gold text-forest-dark text-center py-3.5 rounded-xl font-semibold hover:bg-gold-light transition text-sm">
+            &#43; New Investment
+        </a>
+        <a href="{% url 'asset_list' %}"
+            class="bg-forest-muted text-gray-200 text-center py-3.5 rounded-xl font-medium hover:bg-forest-light transition text-sm">
+            Browse Assets
+        </a>
+        <a href="{% url 'transaction_list' %}"
+            class="bg-forest-muted text-gray-200 text-center py-3.5 rounded-xl font-medium hover:bg-forest-light transition text-sm">
+            Transactions
+        </a>
+        <a href="{% url 'payout_list' %}"
+            class="bg-forest-muted text-gray-200 text-center py-3.5 rounded-xl font-medium hover:bg-forest-light transition text-sm">
+            Payouts
+        </a>
+    </div>
+</div>
+
+{% endblock %}
