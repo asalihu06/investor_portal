@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Log Payment &dash; Enigma Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-lg mx-auto">
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold" style="color:#1a3a28;">Log Hirer Payment</h1>
+            <p class="text-gray-500 mt-1 text-sm">{{ allocation.asset.name }} · {{ allocation.asset.asset_code }}</p>
+        </div>
+        <a href="{% url 'central_payment' %}"
+            class="bg-gray-100 text-gray-700 px-5 py-2 rounded-full text-sm hover:bg-gray-200 transition">
+            ← Back
+        </a>
+    </div>
+
+    <!-- Expected amount -->
+    <div class="rounded-xl p-5 mb-6 flex justify-between items-center" style="background:#e8f0eb;">
+        <div>
+            <p class="text-sm font-bold" style="color:#1a3a28;">Expected Payment</p>
+            <p class="text-xs text-gray-600 mt-0.5 capitalize">
+                {{ investment.payout_frequency }} · {{ investment.investor.user.username }}
+            </p>
+        </div>
+        <p class="text-xl font-bold" style="color:#1a3a28;">₦{{ expected|floatformat:2|intcomma }}</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-8">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Hirer Name</label>
+                <input type="text" name="hirer_name"
+                    value="{{ allocation.hirer_name }}"
+                    placeholder="Name of hirer"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none">
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Amount Received (₦)</label>
+                <input type="number" name="amount_received"
+                    value="{{ expected }}"
+                    min="0" step="0.01" required
+                    class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none">
+                <p class="text-xs text-gray-400 mt-1">Expected: ₦{{ expected|floatformat:2|intcomma }}</p>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                <input type="text" name="notes"
+                    placeholder="Any notes"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none">
+            </div>
+
+            <div class="flex gap-4">
+                <button type="submit"
+                    class="flex-1 text-white py-3 rounded-full font-semibold text-sm"
+                    style="background:#1a3a28;">
+                    Confirm Payment
+                </button>
+                <a href="{% url 'central_payment' %}"
+                    class="flex-1 text-center bg-gray-100 text-gray-700 py-3 rounded-full font-semibold text-sm hover:bg-gray-200 transition">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

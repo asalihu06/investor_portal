@@ -57,6 +57,7 @@ class Investment(models.Model):
     payout_frequency = models.CharField(
         max_length=20, choices=FREQUENCY_CHOICES, default='monthly'
     )
+    duration_weeks = models.PositiveIntegerField(null=True, blank=True)
     duration_months = models.PositiveIntegerField(null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
@@ -66,29 +67,36 @@ class Investment(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def annual_roi(self):
-        rate = Decimal(str(self.tier.return_rate)) / Decimal('100')
-        return round(self.investment_amount * rate, 2)
+    def total_weekly_return(self):
+        
+        total = self.allocations.aggregate(
+            total=Sum('asset__weekly_return')
+        )['total']
+        return total or Decimal('0')
 
     def weekly_return(self):
-        return round(self.annual_roi() / Decimal('52'), 2)
+        return self.total_weekly_return()
 
     def monthly_return(self):
-        return round(self.annual_roi() / Decimal('12'), 2)
+        return self.weekly_return() * Decimal('4')
 
     def expected_return(self):
         if self.payout_frequency == 'weekly':
             return self.weekly_return()
         return self.monthly_return()
 
+    def annual_roi(self):
+        return round(self.weekly_return() * Decimal('52'), 2)
+
     def total_roi(self):
-        if not self.duration_months:
+        if not self.duration_weeks:
             return Decimal('0')
-        if self.payout_frequency == 'weekly':
-            periods = Decimal(str(self.duration_months)) * Decimal('4.33')
-        else:
-            periods = Decimal(str(self.duration_months))
-        return round(self.expected_return() * periods, 2)
+        return round(self.weekly_return() * Decimal(str(self.duration_weeks)), 2)
+
+    def weekly_payout_amount(self):
+        if not self.duration_weeks:
+            return None
+        return self.weekly_return()
 
     def net_return(self):
         return self.investment_amount + self.total_roi()

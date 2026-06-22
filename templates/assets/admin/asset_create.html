@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% block title %}Add Asset — Enigma Admin{% endblock %}
+{% load humanize %}
+{% block title %}Add Asset &mdash; Enigma Admin{% endblock %}
 
 {% block dashboard_content %}
 <div class="max-w-2xl mx-auto">
@@ -10,7 +11,7 @@
         </div>
         <a href="{% url 'admin_asset_list' %}"
             class="bg-gray-100 text-gray-700 px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition text-sm">
-            ← Back
+            &larr; Back
         </a>
     </div>
 
@@ -39,7 +40,7 @@
 
             <div class="mb-5">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Purchase Value (₦)</label>
-                <input type="number" name="purchase_value" min="0" step="0.01"
+                <input type="number" name="purchase_value" min="0" step="0.01" id="purchase-value-input"
                     value="{{ form.purchase_value.value|default:'' }}"
                     placeholder="e.g. 4000000"
                     class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
@@ -49,7 +50,7 @@
             <div class="grid grid-cols-2 gap-4 mb-5">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Service Charge (₦)</label>
-                    <input type="number" name="service_charge" min="0" step="0.01"
+                    <input type="number" name="service_charge" min="0" step="0.01" id="service-charge-input"
                         value="{{ form.service_charge.value|default:'' }}"
                         placeholder="e.g. 50000"
                         class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
@@ -58,12 +59,67 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Management Fee (₦)</label>
-                    <input type="number" name="management_fee" min="0" step="0.01"
+                    <input type="number" name="management_fee" min="0" step="0.01" id="management-fee-input"
                         value="{{ form.management_fee.value|default:'' }}"
                         placeholder="e.g. 30000"
                         class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
                     <p class="text-xs text-gray-400 mt-1">Management fee</p>
                     {% if form.management_fee.errors %}<p class="text-red-500 text-xs mt-1">{{ form.management_fee.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <!-- Total Cost Preview -->
+            <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                <p class="text-sm font-bold text-gray-700 mb-1">Total Cost Preview</p>
+                <p class="text-xs text-gray-500">Purchase Value + Service Charge + Management Fee</p>
+                <p class="text-lg font-bold text-[#0f2419] mt-2" id="total-preview">₦0.00</p>
+            </div>
+
+            <!-- ROI Calculator -->
+            <div class="rounded-xl p-5 mb-6" style="background:#f0f7f1; border:1px solid #d4e8d8;">
+                <p class="text-sm font-bold mb-1" style="color:#1a3a28;">ROI Calculator</p>
+                <p class="text-xs text-gray-500 mb-4">Standard margin: Total Cost &times; 1.20 (20% profit). Enter duration to see the weekly figure, then copy it into the field below.</p>
+
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="text-gray-500">Total Cost</span>
+                    <span class="font-medium" id="calc-total-cost">₦0.00</span>
+                </div>
+                <div class="flex justify-between text-sm mb-4">
+                    <span class="text-gray-500">Total Returns (Cost &times; 1.20)</span>
+                    <span class="font-bold" style="color:#1a3a28;" id="calc-total-returns">₦0.00</span>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Duration (weeks)</label>
+                    <input type="number" id="calc-duration-weeks" min="1"
+                        placeholder="e.g. 50"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                </div>
+
+                <div class="flex justify-between items-center bg-white rounded-lg px-4 py-3">
+                    <span class="text-xs text-gray-500">Calculated Weekly Return</span>
+                    <span class="text-base font-bold" id="calc-weekly-result" style="color:#1a3a28;">—</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Weekly Return (₦)</label>
+                    <input type="number" name="weekly_return" min="0" step="0.01" id="weekly-return-input"
+                        value="{{ form.weekly_return.value|default:'' }}"
+                        placeholder="e.g. 39600"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
+                    <p class="text-xs text-gray-400 mt-1">Amount investor receives weekly per asset</p>
+                    {% if form.weekly_return.errors %}<p class="text-red-500 text-xs mt-1">{{ form.weekly_return.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Duration (weeks)</label>
+                    <input type="number" name="duration_weeks" min="1" id="duration-weeks-input"
+                        value="{{ form.duration_weeks.value|default:'' }}"
+                        placeholder="e.g. 50"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e6b84a]">
+                    <p class="text-xs text-gray-400 mt-1">Total payout weeks for this asset</p>
+                    {% if form.duration_weeks.errors %}<p class="text-red-500 text-xs mt-1">{{ form.duration_weeks.errors.0 }}</p>{% endif %}
                 </div>
             </div>
 
@@ -76,13 +132,6 @@
                     {% endfor %}
                 </select>
                 {% if form.status.errors %}<p class="text-red-500 text-xs mt-1">{{ form.status.errors.0 }}</p>{% endif %}
-            </div>
-
-            <!-- Total Cost Preview -->
-            <div class="bg-gray-50 rounded-xl p-4 mb-6">
-                <p class="text-sm font-bold text-gray-700 mb-1">Total Cost Preview</p>
-                <p class="text-xs text-gray-500">Purchase Value + Service Charge + Management Fee</p>
-                <p class="text-lg font-bold text-[#0f2419] mt-2" id="total-preview">₦0.00</p>
             </div>
 
             <div class="flex gap-4">
@@ -100,18 +149,42 @@
 </div>
 
 <script>
-    function updateTotal() {
-        const purchase = parseFloat(document.querySelector('[name="purchase_value"]').value) || 0;
-        const service = parseFloat(document.querySelector('[name="service_charge"]').value) || 0;
-        const management = parseFloat(document.querySelector('[name="management_fee"]').value) || 0;
-        const total = purchase + service + management;
-        document.getElementById('total-preview').textContent = '₦' + total.toLocaleString('en-NG', {
+    const MARGIN_MULTIPLIER = 1.20;
+
+    function formatNaira(amount) {
+        return '\u20a6' + amount.toLocaleString('en-NG', {
             minimumFractionDigits: 2, maximumFractionDigits: 2
         });
     }
-    document.querySelector('[name="purchase_value"]').addEventListener('input', updateTotal);
-    document.querySelector('[name="service_charge"]').addEventListener('input', updateTotal);
-    document.querySelector('[name="management_fee"]').addEventListener('input', updateTotal);
+
+    function getTotalCost() {
+        const purchase = parseFloat(document.getElementById('purchase-value-input').value) || 0;
+        const service = parseFloat(document.getElementById('service-charge-input').value) || 0;
+        const management = parseFloat(document.getElementById('management-fee-input').value) || 0;
+        return purchase + service + management;
+    }
+
+    function updateAll() {
+        const totalCost = getTotalCost();
+        document.getElementById('total-preview').textContent = formatNaira(totalCost);
+        document.getElementById('calc-total-cost').textContent = formatNaira(totalCost);
+
+        const totalReturns = totalCost * MARGIN_MULTIPLIER;
+        document.getElementById('calc-total-returns').textContent = formatNaira(totalReturns);
+
+        const weeks = parseFloat(document.getElementById('calc-duration-weeks').value) || 0;
+        const resultEl = document.getElementById('calc-weekly-result');
+        if (totalReturns > 0 && weeks > 0) {
+            const weekly = totalReturns / weeks;
+            resultEl.textContent = formatNaira(weekly);
+        } else {
+            resultEl.textContent = '—';
+        }
+    }
+
+    document.getElementById('purchase-value-input').addEventListener('input', updateAll);
+    document.getElementById('service-charge-input').addEventListener('input', updateAll);
+    document.getElementById('management-fee-input').addEventListener('input', updateAll);
+    document.getElementById('calc-duration-weeks').addEventListener('input', updateAll);
 </script>
 {% endblock %}
-

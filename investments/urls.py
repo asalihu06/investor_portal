@@ -14,4 +14,4 @@ urlpatterns = [
     path('<int:pk>/complete/', views.complete_investment_view, name='complete_investment'),
     path('<int:pk>/cancel/', views.cancel_investment_view, name='cancel_investment'),
     path('admin/investments/<int:pk>/assign-assets/', views.admin_assign_assets_view, name='admin_assign_assets'),
-]
+   ]

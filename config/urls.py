@@ -12,6 +12,7 @@ urlpatterns = [
     path('payouts/', include('payouts.urls')),
     path('auditlogs/', include('auditlogs.urls')),
     path('payments/', include('payments.urls')),
+    path('remittances/', include('remittances.urls')),
 
     # Password Reset
     path('accounts/password-reset/',
@@ -21,25 +22,21 @@ urlpatterns = [
             subject_template_name='accounts/password_reset_subject.txt',
         ),
         name='password_reset'),
-
     path('accounts/password-reset/done/',
         auth_views.PasswordResetDoneView.as_view(
             template_name='accounts/password_reset_done.html'
         ),
         name='password_reset_done'),
-
     path('accounts/password-reset-confirm/<uidb64>/<token>/',
         auth_views.PasswordResetConfirmView.as_view(
             template_name='accounts/password_reset_confirm.html'
         ),
         name='password_reset_confirm'),
-
     path('accounts/password-reset-complete/',
         auth_views.PasswordResetCompleteView.as_view(
             template_name='accounts/password_reset_complete.html'
         ),
         name='password_reset_complete'),
-
     # Change Password
     path('accounts/password-change/',
         auth_views.PasswordChangeView.as_view(
@@ -47,7 +44,6 @@ urlpatterns = [
             success_url='/accounts/password-change/done/'
         ),
         name='password_change'),
-
     path('accounts/password-change/done/',
         auth_views.PasswordChangeDoneView.as_view(
             template_name='accounts/password_change_done.html'

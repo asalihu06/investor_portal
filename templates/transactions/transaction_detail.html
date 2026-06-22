@@ -42,6 +42,13 @@
                     {{ transaction.investment.tier.name }}
                 </a>
             </div>
+
+            {% if paystack_reference %}
+<div class="flex justify-between border-b pb-4">
+    <span class="text-sm text-gray-500">Paystack Reference</span>
+    <span class="font-mono text-sm font-bold" style="color:#1a3a28;">{{ paystack_reference }}</span>
+</div>
+{% endif %}
             <div class="flex justify-between">
                 <span class="text-sm text-gray-500">Date</span>
                 <span class="font-medium">{{ transaction.created_at|date:"M d, Y H:i" }}</span>

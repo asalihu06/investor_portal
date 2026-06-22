@@ -60,3 +60,19 @@ def admin_asset_edit_view(request, pk):
     return render(request, 'assets/admin/asset_edit.html', {
         'form': form, 'asset': asset
     })
+
+@admin_required
+def admin_asset_delete_view(request, pk):
+    asset = get_object_or_404(Asset, pk=pk)
+
+    if asset.status == 'allocated':
+        messages.error(request, f'Cannot delete {asset.name}  it is currently allocated to an investment.')
+        return redirect('admin_asset_list')
+
+    if request.method == 'POST':
+        name = asset.name
+        asset.delete()
+        messages.success(request, f'{name} deleted successfully.')
+        return redirect('admin_asset_list')
+
+    return redirect('admin_asset_list')

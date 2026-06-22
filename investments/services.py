@@ -5,13 +5,13 @@ from transactions.models import Transaction
 from payouts.models import Payout
 from auditlogs.models import AuditLog
 
-
-def activate_investment(investment, activated_by, duration_months=None, roi_rate=None):
+def activate_investment(investment, activated_by):
     if investment.status not in ['pending', 'awaiting_payment']:
         raise ValueError("Only pending or awaiting payment investments can be activated.")
 
     from datetime import date
     from dateutil.relativedelta import relativedelta
+    from decimal import Decimal
 
     allocations = investment.allocations.select_related('asset')
     if not allocations.exists():
@@ -22,14 +22,16 @@ def activate_investment(investment, activated_by, duration_months=None, roi_rate
     asset_cost = sum(a.asset.purchase_value for a in allocations)
     total_amount = sum(a.asset.total_cost() for a in allocations)
 
+    # Duration is taken from the allocated assets' own duration_weeks (should be uniform across same asset type)
+    sample_duration_weeks = allocations.first().asset.duration_weeks or 0
+    duration_months = round(sample_duration_weeks / Decimal('4.33')) if sample_duration_weeks else None
+
     investment.status = 'active'
     investment.start_date = date.today()
     investment.service_charge = Decimal(str(service_charge))
     investment.management_fee = Decimal(str(management_fee))
     investment.investment_amount = Decimal(str(total_amount))
-
-    if roi_rate:
-        investment.roi_rate = Decimal(str(roi_rate))
+    investment.duration_weeks = sample_duration_weeks or None
 
     if duration_months:
         investment.duration_months = duration_months
@@ -50,14 +52,12 @@ def activate_investment(investment, activated_by, duration_months=None, roi_rate
         action='Investment Activated',
         model_name='Investment',
         object_id=investment.id,
-        details=f"Investment {investment.id} activated. Duration: {duration_months} months. ROI rate: {roi_rate}%. Asset cost: {asset_cost}. Service charge: {service_charge}. Management fee: {management_fee}. Total: {total_amount}."
+        details=f"Investment {investment.id} activated. Duration: {sample_duration_weeks} weeks (~{duration_months} months). Asset cost: {asset_cost}. Service charge: {service_charge}. Management fee: {management_fee}. Total: {total_amount}."
     )
-
 
 def calculate_return(investment):
     rate = Decimal(str(investment.tier.return_rate)) / Decimal('100')
     return investment.investment_amount * rate
-
 
 
 def generate_payout(investment, generated_by):
@@ -89,6 +89,7 @@ def generate_payout(investment, generated_by):
     )
 
     return payout
+
 
 def complete_investment(investment, completed_by):
     if investment.status != 'active':
@@ -130,3 +131,49 @@ def cancel_investment(investment, cancelled_by):
         object_id=investment.id,
         details=f"Investment {investment.id} cancelled for {investment.investor.user.username}"
     )
+def issue_payment(investment, hirer_name, issued_by, notes=''):
+    if investment.status != 'active':
+        raise ValueError("Payments can only be issued for active investments.")
+
+    from remittances.models import Remittance
+
+    expected_amount = investment.expected_return()
+
+    remittance = Remittance.objects.create(
+        investment=investment,
+        hirer_name=hirer_name or 'Bulk payment',
+        expected_amount=expected_amount,
+        amount_received=expected_amount,
+        received_date=timezone.now().date(),
+        notes=notes,
+        status='received',
+        recorded_by=issued_by,
+        payout_generated=True,
+    )
+
+    payout = Payout.objects.create(
+        investment=investment,
+        amount=expected_amount,
+        status='paid',
+        payout_date=timezone.now().date()
+    )
+
+    Transaction.objects.create(
+        investment=investment,
+        transaction_type='return',
+        amount=expected_amount,
+        status='confirmed',
+        reference=f"RET-{investment.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+    )
+
+    investment.allocations.update(hirer_paid=False, hirer_paid_at=None)
+
+    AuditLog.objects.create(
+        user=issued_by,
+        action='Payment Issued',
+        model_name='Payout',
+        object_id=payout.id,
+        details=f"₦{expected_amount} payment issued to {investment.investor.user.username} for investment {investment.id}."
+    )
+
+    return remittance, payout

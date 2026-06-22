@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.utils import timezone
 from decimal import Decimal
 from .models import Investment, InvestmentTier
 from investors.models import InvestorProfile
 from accounts.decorators import admin_required, investor_required
-from .services import activate_investment, generate_payout, complete_investment, cancel_investment
+from .services import activate_investment, generate_payout, complete_investment, cancel_investment, issue_payment
 from assets.models import Asset, AssetAllocation
 
 
@@ -68,9 +69,9 @@ def select_assets_view(request):
     for at in asset_types:
         sample = Asset.objects.get(id=at['sample_id'])
         multiplier = tier.get_multiplier()
-        unit_price = (sample.purchase_value * multiplier) + sample.service_charge + sample.management_fee
-        weekly = round(unit_price * (Decimal(str(tier.return_rate)) / Decimal('100')) / Decimal('52'), 2)
-        monthly = round(unit_price * (Decimal(str(tier.return_rate)) / Decimal('100')) / Decimal('12'), 2)
+        unit_price = sample.total_cost() * multiplier
+        weekly = (sample.weekly_return or Decimal('0')) * multiplier
+        monthly = weekly * Decimal('4')
         asset_type_list.append({
             'asset_type': at['asset_type'],
             'sample': sample,
@@ -78,8 +79,6 @@ def select_assets_view(request):
             'weekly_roi': weekly,
             'monthly_roi': monthly,
         })
-
-    max_quantity = tier.maximum_assets
 
     if request.method == 'POST':
         selected_type = request.POST.get('asset_type')
@@ -89,33 +88,27 @@ def select_assets_view(request):
             return render(request, 'investments/select_assets.html', {
                 'tier': tier,
                 'asset_type_list': asset_type_list,
-                'max_quantity': max_quantity,
             })
-
-        # Quantity fixed by tier multiplier
-        quantity = tier.get_multiplier()
 
         available_count = Asset.objects.filter(
             asset_type=selected_type,
             status='available'
         ).count()
 
-        if available_count < quantity:
-            messages.error(request, f'Only {available_count} unit(s) of {selected_type} available.')
+        if available_count < tier.get_multiplier():
+            messages.error(request, f'Only {available_count} unit(s) of {selected_type} available. Need {tier.get_multiplier()} for this tier.')
             return render(request, 'investments/select_assets.html', {
                 'tier': tier,
                 'asset_type_list': asset_type_list,
-                'max_quantity': max_quantity,
             })
 
         request.session['selected_asset_type'] = selected_type
-        request.session['selected_quantity'] = quantity
+        request.session['selected_quantity'] = 1
         return redirect('investment_review')
 
     return render(request, 'investments/select_assets.html', {
         'tier': tier,
         'asset_type_list': asset_type_list,
-        'max_quantity': max_quantity,
     })
 
 
@@ -145,23 +138,22 @@ def investment_review_view(request):
         return redirect('select_assets')
 
     multiplier = tier.get_multiplier()
-    unit_price = (sample_asset.purchase_value * multiplier) + sample_asset.service_charge + sample_asset.management_fee
-    total_amount = unit_price * quantity
-    asset_cost = sample_asset.purchase_value * multiplier * quantity
-    total_service_charge = sample_asset.service_charge * quantity
-    total_management_fee = sample_asset.management_fee * quantity
+    unit_price = sample_asset.total_cost() * multiplier
+    total_amount = unit_price
+    asset_cost = sample_asset.purchase_value * multiplier
+    total_service_charge = sample_asset.service_charge * multiplier
+    total_management_fee = sample_asset.management_fee * multiplier
 
-    annual_roi = total_amount * (Decimal(str(tier.return_rate)) / Decimal('100'))
-    weekly = round(annual_roi / Decimal('52'), 2)
-    monthly = round(annual_roi / Decimal('12'), 2)
+    weekly = (sample_asset.weekly_return or Decimal('0')) * multiplier
+    monthly = weekly * Decimal('4')
 
     if request.method == 'POST':
         investment = Investment.objects.create(
             investor=profile,
             tier=tier,
-            number_of_assets=quantity,
+            number_of_assets=tier.get_multiplier(),
             asset_type=asset_type,
-            quantity=quantity,
+            quantity=1,
             investment_amount=total_amount,
             service_charge=total_service_charge,
             management_fee=total_management_fee,
@@ -181,6 +173,7 @@ def investment_review_view(request):
         'tier': tier,
         'asset_type': asset_type,
         'quantity': quantity,
+        'multiplier': multiplier,
         'sample_asset': sample_asset,
         'unit_price': unit_price,
         'total_amount': total_amount,
@@ -191,6 +184,7 @@ def investment_review_view(request):
         'monthly_return': monthly,
         'frequency': frequency,
     })
+
 
 
 @investor_required
@@ -239,14 +233,18 @@ def manage_investment_view(request, pk):
     allocated_asset_ids = allocations.values_list('asset_id', flat=True)
     available_assets = Asset.objects.filter(status='available').exclude(id__in=allocated_asset_ids)
 
+    paid_count = allocations.filter(current_period_paid=True).count()
+    total_count = allocations.count()
+
     return render(request, 'investments/manage_investment.html', {
         'investment': investment,
         'allocations': allocations,
         'transactions': transactions,
         'payouts': payouts,
         'available_assets': available_assets,
+        'paid_count': paid_count,
+        'total_count': total_count,
     })
-
 
 @admin_required
 def admin_assign_assets_view(request, pk):
@@ -297,19 +295,11 @@ def activate_investment_view(request, pk):
     investment = get_object_or_404(Investment, pk=pk)
     if request.method == 'POST':
         try:
-            duration_months = int(request.POST.get('duration_months', 0))
-            roi_rate = request.POST.get('roi_rate')
-            activate_investment(
-                investment,
-                activated_by=request.user,
-                duration_months=duration_months,
-                roi_rate=roi_rate,
-            )
-            messages.success(request, f'Investment activated. ROI: {roi_rate}%.')
+            activate_investment(investment, activated_by=request.user)
+            messages.success(request, 'Investment activated.')
         except ValueError as e:
             messages.error(request, str(e))
     return redirect('manage_investment', pk=pk)
-
 
 @admin_required
 def generate_payout_view(request, pk):
@@ -375,3 +365,33 @@ def set_charges_view(request, pk):
         return redirect('manage_investment', pk=pk)
 
     return render(request, 'investments/set_charges.html', {'investment': investment})
+
+@admin_required
+def confirm_asset_payment_view(request, allocation_pk):
+    allocation = get_object_or_404(AssetAllocation, pk=allocation_pk)
+    investment = allocation.investment
+
+    if investment.status != 'active':
+        messages.error(request, 'Can only confirm payments for active investments.')
+        return redirect('manage_investment', pk=investment.pk)
+
+    allocation.current_period_paid = True
+    allocation.hirer_paid_at = timezone.now()
+    allocation.save()
+
+    from auditlogs.models import AuditLog
+    AuditLog.objects.create(
+        user=request.user,
+        action='Asset Hirer Payment Confirmed',
+        model_name='AssetAllocation',
+        object_id=allocation.id,
+        details=f"Hirer payment confirmed for {allocation.asset.name} ({allocation.asset.asset_code}) under investment {investment.id}."
+    )
+
+    remaining = investment.allocations.filter(current_period_paid=False).count()
+    if remaining == 0:
+        messages.success(request, f'All assets paid for this cycle. Investment is now ready on the Issue Payments screen.')
+    else:
+        messages.success(request, f'Payment confirmed for {allocation.asset.name}. {remaining} asset(s) still pending this cycle.')
+
+    return redirect('manage_investment', pk=investment.pk)

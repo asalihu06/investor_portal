@@ -16,6 +16,8 @@ class Asset(models.Model):
     purchase_value = models.DecimalField(max_digits=15, decimal_places=2)
     service_charge = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     management_fee = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    weekly_return = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    duration_weeks = models.PositiveIntegerField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -45,20 +47,18 @@ class Asset(models.Model):
         super().save(*args, **kwargs)
 
     def total_cost(self):
-        """Full amount investor pays for this asset"""
         return self.purchase_value + self.service_charge + self.management_fee
 
-    def weekly_roi(self, return_rate):
-        """Weekly ROI based on total cost including all fees"""
+    def monthly_return_amount(self):
+        if not self.weekly_return:
+            return None
         from decimal import Decimal
-        rate = Decimal(str(return_rate)) / Decimal('100')
-        return round(self.total_cost() * rate / Decimal('52'), 2)
+        return self.weekly_return * Decimal('4')
 
-    def monthly_roi(self, return_rate):
-        """Monthly ROI based on total cost including all fees"""
-        from decimal import Decimal
-        rate = Decimal(str(return_rate)) / Decimal('100')
-        return round(self.total_cost() * rate / Decimal('12'), 2)
+    def total_expected_return(self):
+        if not self.weekly_return or not self.duration_weeks:
+            return None
+        return self.weekly_return * self.duration_weeks
 
     def __str__(self):
         return f"{self.name} ({self.asset_code})"
@@ -75,26 +75,28 @@ class AssetAllocation(models.Model):
         on_delete=models.PROTECT
     )
     quantity = models.PositiveIntegerField(default=1)
+    hirer_name = models.CharField(max_length=200, blank=True)
+    hirer_phone = models.CharField(max_length=20, blank=True)
     allocated_at = models.DateTimeField(auto_now_add=True)
+
+    # Payment tracking
+    current_period_paid = models.BooleanField(default=False)
+    last_payment_date = models.DateField(null=True, blank=True)
 
     class Meta:
         unique_together = ('investment', 'asset')
 
     def unit_price(self):
-        return self.asset.purchase_value * self.investment.tier.multiplier
+        return (self.asset.purchase_value * self.investment.tier.get_multiplier()) + \
+                self.asset.service_charge + self.asset.management_fee
 
     def total_price(self):
         return self.unit_price() * self.quantity
 
-    def weekly_roi(self):
-        from decimal import Decimal
-        rate = Decimal(str(self.investment.tier.return_rate)) / Decimal('100')
-        return round(self.total_price() * rate / Decimal('52'), 2)
-
-    def monthly_roi(self):
-        from decimal import Decimal
-        rate = Decimal(str(self.investment.tier.return_rate)) / Decimal('100')
-        return round(self.total_price() * rate / Decimal('12'), 2)
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.asset.status = 'allocated'
+        self.asset.save()
 
     def __str__(self):
-        return f"{self.quantity}× {self.asset.name} → Investment {self.investment.id}"
+        return f"{self.asset.name} → Investment {self.investment.id}"

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% block title %}Manage Assets — Enigma Admin{% endblock %}
+{% load humanize %}
+{% block title %}Manage Assets &dash; Enigma Admin{% endblock %}
 
 {% block dashboard_content %}
 <div class="mb-8 flex justify-between items-center">
@@ -9,7 +10,7 @@
     </div>
     <a href="{% url 'admin_asset_create' %}"
         class="bg-[#1a3a28] text-white px-6 py-3 rounded-full font-medium hover:bg-[#0f2419] transition text-sm">
-        + Add Asset
+        &plus; Add Asset
     </a>
 </div>
 
@@ -21,7 +22,7 @@
                 <th class="px-6 py-4 text-left">Code</th>
                 <th class="px-6 py-4 text-left">Type</th>
                 <th class="px-6 py-4 text-left">Purchase Value</th>
-                <th class="px-6 py-4 text-left">Current Value</th>
+                <th class="px-6 py-4 text-left">Total Cost</th>
                 <th class="px-6 py-4 text-left">Status</th>
                 <th class="px-6 py-4 text-left"></th>
             </tr>
@@ -32,8 +33,10 @@
                 <td class="px-6 py-4 font-medium text-gray-800">{{ asset.name }}</td>
                 <td class="px-6 py-4 text-gray-500">{{ asset.asset_code }}</td>
                 <td class="px-6 py-4 text-gray-500">{{ asset.asset_type }}</td>
-                <td class="px-6 py-4">₦{{ asset.purchase_value|floatformat:2 }}</td>
-                <td class="px-6 py-4 font-bold text-[#0f2419]">₦{{ asset.purchase_value|floatformat:2 }}</td>
+                <td class="px-6 py-4">₦{{ asset.purchase_value|floatformat:2|intcomma }}</td>
+                <td class="px-6 py-4 font-semibold" style="color:#1a3a28;">
+                    ₦{{ asset.total_cost|floatformat:2|intcomma }}
+                </td>
                 <td class="px-6 py-4">
                     <span class="px-3 py-1 rounded-full text-xs font-semibold
                         {% if asset.status == 'available' %}bg-green-100 text-green-700
@@ -43,13 +46,25 @@
                         {{ asset.get_status_display }}
                     </span>
                 </td>
-                <td class="px-6 py-4">
-                    <a href="{% url 'admin_asset_edit' asset.pk %}"
-                        class="bg-[#1a3a28] text-white px-4 py-2 rounded-full text-xs hover:bg-[#0f2419] transition">
-                        Edit
-                    </a>
-                </td>
-            </tr>
+               <td class="px-6 py-4">
+    <div class="flex gap-2">
+        <a href="{% url 'admin_asset_edit' asset.pk %}"
+            class="bg-[#1a3a28] text-white px-4 py-2 rounded-full text-xs hover:bg-[#0f2419] transition">
+            Edit
+        </a>
+        {% if asset.status != 'allocated' %}
+        <form method="POST" action="{% url 'admin_asset_delete' asset.pk %}"
+            onsubmit="return confirm('Delete {{ asset.name }} ({{ asset.asset_code }})? This cannot be undone.')">
+            {% csrf_token %}
+            <button type="submit"
+                class="bg-red-500 text-white px-4 py-2 rounded-full text-xs hover:bg-red-600 transition">
+                Delete
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</td>
+</tr>
             {% empty %}
             <tr>
                 <td colspan="7" class="px-6 py-16 text-center text-gray-400">No assets yet.</td>
@@ -59,4 +74,3 @@
     </table>
 </div>
 {% endblock %}
-

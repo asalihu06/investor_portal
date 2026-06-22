@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Central Payments — Enigma Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold" style="color:#1a3a28;">Central Payments</h1>
+    <p class="text-gray-500 mt-1 text-sm">Log hirer payments and issue investor payouts</p>
+</div>
+
+<!-- Ready for Payout -->
+{% if ready_for_payout %}
+<div class="mb-8">
+    <h2 class="text-base font-bold mb-4" style="color:#1a3a28;">
+        Ready for Payout
+        <span class="ml-2 text-xs px-2 py-1 rounded-full text-white" style="background:#1a3a28;">
+            {{ ready_for_payout|length }}
+        </span>
+    </h2>
+    <div class="space-y-3">
+        {% for investment in ready_for_payout %}
+        <div class="bg-white rounded-2xl shadow p-6 border-l-4" style="border-color:#1a3a28;">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="font-bold text-gray-800">{{ investment.investor.user.username }}</p>
+                    <p class="text-sm text-gray-500">
+                        {{ investment.tier.name }} ·
+                        {{ investment.payout_frequency|capfirst }} ·
+                        ₦{{ investment.expected_return|floatformat:2|intcomma }}
+                    </p>
+                    <p class="text-xs mt-1" style="color:#1a3a28;">
+                        All {{ investment.allocations.count }} asset(s) paid ✓
+                    </p>
+                </div>
+                <form method="POST" action="{% url 'issue_payment' investment.pk %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                        class="text-white px-6 py-3 rounded-full font-semibold text-sm"
+                        style="background:#1a3a28;"
+                        onclick="return confirm('Issue ₦{{ investment.expected_return|floatformat:2 }} to {{ investment.investor.user.username }}?')">
+                        Issue ₦{{ investment.expected_return|floatformat:2|intcomma }}
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Pending Payments -->
+<div>
+    <h2 class="text-base font-bold mb-4" style="color:#1a3a28;">
+        Pending Hirer Payments
+        <span class="ml-2 text-xs px-2 py-1 rounded-full text-white" style="background:#9ca3af;">
+            {{ pending_payments|length }}
+        </span>
+    </h2>
+
+    {% if pending_payments %}
+    <div class="space-y-4">
+        {% for item in pending_payments %}
+        <div class="bg-white rounded-2xl shadow p-6">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <p class="font-bold text-gray-800">{{ item.investment.investor.user.username }}</p>
+                    <p class="text-sm text-gray-500">
+                        {{ item.investment.tier.name }} ·
+                        {{ item.investment.payout_frequency|capfirst }} ·
+                        ₦{{ item.investment.expected_return|floatformat:2|intcomma }}
+                    </p>
+                </div>
+                <span class="text-xs px-3 py-1 rounded-full font-semibold bg-yellow-100 text-yellow-700">
+                    {{ item.paid }}/{{ item.total }} paid
+                </span>
+            </div>
+
+            <!-- Per asset payment status -->
+            <div class="space-y-2">
+                {% for allocation in item.allocations %}
+                <div class="flex justify-between items-center border rounded-xl p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+                            style="{% if allocation.current_period_paid %}background:#e8f0eb; color:#1a3a28;{% else %}background:#f3f4f6; color:#9ca3af;{% endif %}">
+                            {% if allocation.current_period_paid %}✓{% else %}—{% endif %}
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">{{ allocation.asset.name }}</p>
+                            <p class="text-xs text-gray-500">
+                                {{ allocation.asset.asset_code }}
+                                {% if allocation.hirer_name %} · {{ allocation.hirer_name }}{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        {% if allocation.current_period_paid %}
+                        <span class="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold">Paid</span>
+                        {% else %}
+                        <a href="{% url 'log_asset_payment' allocation.pk %}"
+                            class="text-xs text-white px-4 py-2 rounded-full font-semibold"
+                            style="background:#1a3a28;">
+                            Log Payment
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl shadow p-12 text-center">
+        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p class="text-gray-400 text-sm">No pending payments.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 {% block title %}My Assets &mdash; Enigma Investor Portal{% endblock %}
 
 {% block dashboard_content %}
@@ -27,7 +28,7 @@
             </div>
             <div class="flex justify-between text-sm">
                 <span class="text-gray-500">Current Value</span>
-                <span class="font-bold text-[#0f2419]">₦{{ allocation.asset.current_value|floatformat:2 }}</span>
+                <span class="font-bold text-[#0f2419]">₦{{ allocation.asset.current_value|floatformat:2 | intcomma }}</span>
             </div>
             <div class="flex justify-between text-sm">
                 <span class="text-gray-500">Investment</span>

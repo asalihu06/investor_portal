@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Remittances &mdash; Enigma Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold" style="color:#1a3a28;">Remittances</h1>
+    <p class="text-gray-500 mt-1 text-sm">All hirer payments logged on the platform</p>
+</div>
+
+<div class="bg-white rounded-2xl shadow overflow-hidden">
+    <table class="w-full text-sm">
+        <thead style="background:#f7f6f2;">
+            <tr class="text-xs text-gray-500 uppercase">
+                <th class="px-6 py-4 text-left">Investor</th>
+                <th class="px-6 py-4 text-left">Hirer</th>
+                <th class="px-6 py-4 text-left">Expected</th>
+                <th class="px-6 py-4 text-left">Received</th>
+                <th class="px-6 py-4 text-left">Status</th>
+                <th class="px-6 py-4 text-left">Payout</th>
+                <th class="px-6 py-4 text-left">Date</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for r in remittances %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-4">
+                    <p class="font-medium text-gray-800">{{ r.investment.investor.user.username }}</p>
+                    <p class="text-xs text-gray-400">{{ r.investment.tier.name }}</p>
+                </td>
+                <td class="px-6 py-4 text-gray-600">{{ r.hirer_name }}</td>
+                <td class="px-6 py-4 text-gray-600">₦{{ r.expected_amount|floatformat:2|intcomma }}</td>
+                <td class="px-6 py-4 font-medium" style="color:#1a3a28;">₦{{ r.amount_received|floatformat:2|intcomma }}</td>
+                <td class="px-6 py-4">
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                        {% if r.status == 'received' %}bg-green-100 text-green-700
+                        {% elif r.status == 'partial' %}bg-yellow-100 text-yellow-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ r.get_status_display }}
+                    </span>
+                </td>
+                <td class="px-6 py-4">
+                    {% if r.payout_generated %}
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Generated</span>
+                    {% else %}
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">Pending</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 text-gray-500">{{ r.received_date|date:"M d, Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="px-6 py-16 text-center text-gray-400">No remittances logged yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

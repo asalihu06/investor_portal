@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% load humanize %}
-{% block title %}Review Investment {% endblock %}
+{% block title %}Review Investment &mdash; Enigma Investor Portal{% endblock %}
 
 {% block dashboard_content %}
 <div class="max-w-2xl mx-auto">
     <div class="mb-8">
-        <h1 class="text-xl font-bold text-[#0f2419]">Review & Pay</h1>
-        <p class="text-gray-500 mt-1 text-xs">Step 3 of 3 - Confirm your investment details</p>
+        <h1 class="text-xl font-bold text-[#0f2419]">Review &amp; Pay</h1>
+        <p class="text-gray-500 mt-1 text-xs">Step 3 of 3 &mdash; Confirm your investment details</p>
     </div>
 
     <!-- Progress -->
@@ -31,157 +31,91 @@
         <div class="flex-1 h-px bg-[#1a3a28]"></div>
         <div class="flex items-center gap-2">
             <div class="w-6 h-6 rounded-full bg-[#1a3a28] text-white flex items-center justify-center text-xs font-bold">3</div>
-            <span class="text-xs font-medium text-[#0f2419]">Review & Pay</span>
+            <span class="text-xs font-medium text-[#0f2419]">Review &amp; Pay</span>
         </div>
     </div>
 
-<!-- Asset Selection Summary -->
-<div class="bg-white rounded-2xl shadow p-8 mb-6">
-    <h2 class="text-base font-bold mb-6" style="color:#1a3a28;">Investment Summary</h2>
-    <div class="space-y-3">
-        <div class="flex justify-between border-b pb-3">
-            <span class="text-sm text-gray-500">Tier</span>
-            <span class="text-sm font-medium">{{ tier.name }} ({{ tier.multiplier }}×)</span>
-        </div>
-        <div class="flex justify-between border-b pb-3">
-            <span class="text-sm text-gray-500">Asset Type</span>
-            <span class="text-sm font-medium">{{ asset_type }}</span>
-        </div>
-        <div class="flex justify-between border-b pb-3">
-            <span class="text-sm text-gray-500">Quantity</span>
-            <span class="text-sm font-medium">{{ quantity }} unit{% if quantity > 1 %}s{% endif %}</span>
-        </div>
-        <div class="flex justify-between border-b pb-3">
-            <span class="text-sm text-gray-500">Unit Price ({{ tier.multiplier }}×)</span>
-            <span class="text-sm font-medium">&#8358;{{ unit_price|floatformat:2|intcomma }}</span>
-        </div>
-        <div class="flex justify-between border-b pb-3">
-            <span class="text-sm text-gray-500">Payout Frequency</span>
-            <span class="text-sm font-medium capitalize">{{ frequency }}</span>
-        </div>
-        <div class="flex justify-between border-b pb-3">
-            <span class="text-sm text-gray-500">ROI</span>
-            <span class="text-sm font-medium" style="color:#1a3a28;">{{ tier.return_rate }}% per annum</span>
-        </div>
-        <div class="flex justify-between border-b pb-3">
-            <span class="text-sm text-gray-500">
-                {% if frequency == 'weekly' %}Weekly{% else %}Monthly{% endif %} Return
-            </span>
-            <span class="text-sm font-bold" style="color:#1a3a28;">
-                {% if frequency == 'weekly' %}
-                    &#8358;{{ weekly_return|floatformat:2|intcomma }} / week
-                {% else %}
-                    &#8358;{{ monthly_return|floatformat:2|intcomma }} / month
-                {% endif %}
-            </span>
+    <!-- Investment Summary -->
+    <div class="bg-white rounded-2xl shadow p-8 mb-6">
+        <h2 class="text-base font-bold mb-6" style="color:#1a3a28;">Investment Summary</h2>
+        <div class="space-y-3">
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-sm text-gray-500">Tier</span>
+                <span class="text-sm font-medium">{{ tier.name }}</span>
+            </div>
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-sm text-gray-500">Asset Type</span>
+                <span class="text-sm font-medium">{{ asset_type }}</span>
+            </div>
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-sm text-gray-500">Assets Funded</span>
+                <span class="text-sm font-medium">{{ multiplier }} {{ asset_type }}(s)</span>
+            </div>
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-sm text-gray-500">Payout Frequency</span>
+                <span class="text-sm font-medium capitalize">{{ frequency }}</span>
+            </div>
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-sm text-gray-500">ROI</span>
+                <span class="text-sm font-medium" style="color:#1a3a28;">{{ tier.return_rate }}% per annum</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-sm text-gray-500">
+                    {% if frequency == 'weekly' %}Weekly{% else %}Monthly{% endif %} Return
+                </span>
+                <span class="text-sm font-bold" style="color:#1a3a28;">
+                    {% if frequency == 'weekly' %}
+                        &#8358;{{ weekly_return|floatformat:2|intcomma }} / week
+                    {% else %}
+                        &#8358;{{ monthly_return|floatformat:2|intcomma }} / month
+                    {% endif %}
+                </span>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Cost Breakdown -->
-<div class="bg-white rounded-2xl shadow p-8 mb-6">
-    <h2 class="text-base font-bold mb-6" style="color:#1a3a28;">Cost Breakdown</h2>
-    <div class="space-y-3">
-        <div class="flex justify-between border-b pb-3">
-            <span class="text-sm text-gray-500">Asset Cost ({{ quantity }}× &#8358;{{ sample_asset.purchase_value|floatformat:2|intcomma }} × {{ tier.multiplier }})</span>
-            <span class="text-sm font-medium">&#8358;{{ asset_cost|floatformat:2|intcomma }}</span>
-        </div>
-        <div class="flex justify-between border-b pb-3">
-            <span class="text-sm text-gray-500">Service Charge</span>
-            <span class="text-sm font-medium">&#8358;{{ total_service_charge|floatformat:2|intcomma }}</span>
-        </div>
-        <div class="flex justify-between border-b pb-3">
-            <span class="text-sm text-gray-500">Management Fee</span>
-            <span class="text-sm font-medium">&#8358;{{ total_management_fee|floatformat:2|intcomma }}</span>
-        </div>
-        <div class="flex justify-between pt-1">
-            <span class="text-sm font-bold text-gray-700">Total to Pay</span>
-            <span class="text-xl font-bold" style="color:#1a3a28;">&#8358;{{ total_amount|floatformat:2|intcomma }}</span>
-        </div>
-    </div>
-</div>
-        <!-- Selected Assets -->
-<h3 class="text-sm font-bold text-gray-700 mb-3">Selected Assets</h3>
-<div class="space-y-2 mb-6">
-    {% for item in line_items %}
-    <div class="bg-gray-50 rounded-xl p-4">
-        <div class="flex justify-between items-start mb-2">
-            <div>
-                <p class="font-medium text-gray-800 text-sm">{{ item.asset.name }}</p>
-                <p class="text-xs text-gray-500">
-                    {{ item.asset.asset_type }} · {{ item.asset.asset_code }} ·
-                    {{ item.quantity }} unit{% if item.quantity > 1 %}s{% endif %} ×
-                    &#8358;{{ item.unit_price|floatformat:2|intcomma }}
-                </p>
+    <!-- Cost Breakdown -->
+    <div class="bg-white rounded-2xl shadow p-8 mb-6">
+        <h2 class="text-base font-bold mb-6" style="color:#1a3a28;">Cost Breakdown</h2>
+        <div class="space-y-3">
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-sm text-gray-500">
+                    Asset Cost ({{ multiplier }} &times; &#8358;{{ sample_asset.purchase_value|floatformat:2|intcomma }})
+                </span>
+                <span class="text-sm font-medium">&#8358;{{ asset_cost|floatformat:2|intcomma }}</span>
             </div>
-            <p class="font-bold text-sm" style="color:#1a3a28;">
-                &#8358;{{ item.line_total|floatformat:2|intcomma }}
-            </p>
-        </div>
-        <div class="flex gap-6 mt-2 pt-2 border-t border-gray-200">
-            <div class="flex justify-between w-full text-xs">
-                <span class="text-gray-500">Weekly ROI</span>
-                <span class="font-bold" style="color:#1a3a28;">&#8358;{{ item.weekly_roi|floatformat:2|intcomma }}</span>
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-sm text-gray-500">
+                    Service Charge ({{ multiplier }} &times; &#8358;{{ sample_asset.service_charge|floatformat:2|intcomma }})
+                </span>
+                <span class="text-sm font-medium">&#8358;{{ total_service_charge|floatformat:2|intcomma }}</span>
             </div>
-            <div class="flex justify-between w-full text-xs">
-                <span class="text-gray-500">Monthly ROI</span>
-                <span class="font-bold" style="color:#1a3a28;">&#8358;{{ item.monthly_roi|floatformat:2|intcomma }}</span>
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-sm text-gray-500">
+                    Management Fee ({{ multiplier }} &times; &#8358;{{ sample_asset.management_fee|floatformat:2|intcomma }})
+                </span>
+                <span class="text-sm font-medium">&#8358;{{ total_management_fee|floatformat:2|intcomma }}</span>
+            </div>
+            <div class="flex justify-between pt-1">
+                <span class="text-sm font-bold text-gray-700">Total to Pay</span>
+                <span class="text-xl font-bold" style="color:#1a3a28;">&#8358;{{ total_amount|floatformat:2|intcomma }}</span>
             </div>
         </div>
     </div>
-    {% endfor %}
-</div>
 
-        <!-- Cost Breakdown -->
-        <div class="bg-gray-50 rounded-xl p-4 mb-6">
-            <h3 class="text-xs font-bold text-gray-700 mb-3">Cost Breakdown</h3>
-            <div class="space-y-2">
-                <div class="flex justify-between">
-                    <span class="text-xs text-gray-500">Asset Cost</span>
-                    <span class="text-xs font-medium">&#8358;{{ asset_cost|floatformat:2|intcomma }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-xs text-gray-500">Service Charge</span>
-                    <span class="text-xs font-medium">&#8358;{{ total_service_charge|floatformat:2|intcomma }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-xs text-gray-500">Management Fee</span>
-                    <span class="text-xs font-medium">&#8358;{{ total_management_fee|floatformat:2|intcomma }}</span>
-                </div>
-                <div class="flex justify-between border-t pt-3 mt-2">
-                    <span class="text-xs font-bold text-gray-700">Total to Pay</span>
-                    <span class="text-xs font-bold text-[#0f2419]">&#8358;{{ total_amount|floatformat:2|intcomma }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-xs text-gray-500">
-                        Expected {% if frequency == 'weekly' %}Weekly{% else %}Monthly{% endif %} Return
-                    </span>
-                    <span class="text-xs font-medium text-green-600">
-                        {% if frequency == 'weekly' %}
-                            &#8358;{{ weekly_return|floatformat:2|intcomma }} / week
-                        {% else %}
-                            &#8358;{{ monthly_return|floatformat:2|intcomma }} / month
-                        {% endif %}
-                    </span>
-                </div>
-            </div>
+    <!-- Confirm -->
+    <form method="POST">
+        {% csrf_token %}
+        <div class="flex gap-4">
+            <button type="submit"
+                class="flex-1 bg-[#1a3a28] text-white py-2.5 rounded-full font-semibold hover:bg-[#0f2419] transition text-sm">
+                Confirm &amp; Proceed to Payment
+            </button>
+            <a href="javascript:void(0)" onclick="history.back()"
+                class="flex-1 text-center bg-gray-100 text-gray-600 py-2.5 rounded-full font-semibold hover:bg-gray-200 transition text-sm">
+                &larr; Back
+            </a>
         </div>
-
-        <!-- Confirm -->
-        <form method="POST">
-            {% csrf_token %}
-            <div class="flex gap-4">
-                <button type="submit"
-                    class="flex-1 bg-[#1a3a28] text-white py-2.5 rounded-full font-semibold hover:bg-[#0f2419] transition text-xs">
-                    Confirm & Proceed to Payment
-                </button>
-                <a href="javascript:void(0)" onclick="history.back()"
-                    class="flex-1 text-center bg-gray-100 text-gray-600 py-2.5 rounded-full font-semibold hover:bg-gray-200 transition text-xs">
-                    &larr; Back
-                </a>
-            </div>
-        </form>
-    </div>
+    </form>
 </div>
 {% endblock %}
-

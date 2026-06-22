@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'transactions',
     'payouts',
     'auditlogs',
+    'remittances',
 ]
 
 MIDDLEWARE = [
@@ -147,7 +148,6 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@enigmatransport.com'
 
-# Security settings for local dev
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 X_FRAME_OPTIONS = 'DENY'

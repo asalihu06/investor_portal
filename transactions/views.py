@@ -27,13 +27,22 @@ def transaction_detail_view(request, pk):
     except InvestorProfile.DoesNotExist:
         return redirect('profile_create')
 
-    
     transaction = get_object_or_404(
         Transaction, pk=pk, investment__investor=profile
     )
+
+    paystack_reference = None
+    if transaction.transaction_type == 'deposit':
+        try:
+            paystack_reference = transaction.investment.payment.reference
+        except Exception:
+            pass
+
     return render(request, 'transactions/transaction_detail.html', {
-        'transaction': transaction
+        'transaction': transaction,
+        'paystack_reference': paystack_reference,
     })
+
 
 @admin_required
 def admin_transaction_list_view(request):

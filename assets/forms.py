@@ -8,7 +8,9 @@ class AssetForm(forms.ModelForm):
         fields = (
             'name', 'asset_type',
             'purchase_value',
-            'service_charge', 'management_fee', 'status'
+            'service_charge', 'management_fee',
+            'weekly_return', 'duration_weeks',
+            'status'
         )
 
 
