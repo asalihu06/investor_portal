@@ -99,7 +99,7 @@ class Investment(models.Model):
         return self.weekly_return()
 
     def net_return(self):
-        return self.investment_amount + self.total_roi()
+        return self.total_roi()
 
     def asset_cost(self):
         total = self.allocations.aggregate(
