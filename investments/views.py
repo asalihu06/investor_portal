@@ -232,7 +232,9 @@ def manage_investment_view(request, pk):
     payouts = investment.payouts.all().order_by('-created_at')
 
     allocated_asset_ids = allocations.values_list('asset_id', flat=True)
-    available_assets = Asset.objects.filter(status='available').exclude(id__in=allocated_asset_ids)
+    available_assets = Asset.objects.filter(
+    status='available',
+    asset_type__iexact=investment.asset_type).exclude(id__in=allocated_asset_ids)
 
     paid_count = allocations.filter(current_period_paid=True).count()
     total_count = allocations.count()
