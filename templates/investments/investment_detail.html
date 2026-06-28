@@ -83,27 +83,37 @@
         <div class="flex justify-between py-3"><span class="text-sm text-gray-500">Service Charge</span><span class="text-sm font-medium text-gray-800">&#8358;{{ investment.service_charge|floatformat:2|intcomma }}</span></div>
         <div class="flex justify-between py-3"><span class="text-sm text-gray-500">Management Fee</span><span class="text-sm font-medium text-gray-800">&#8358;{{ investment.management_fee|floatformat:2|intcomma }}</span></div>
         <div class="flex justify-between py-3"><span class="text-sm font-bold text-gray-700">Total Investment</span><span class="text-sm font-bold text-forest-dark">&#8358;{{ investment.investment_amount|floatformat:2|intcomma }}</span></div>
-        {% if investment.duration_months %}
-        <div class="flex justify-between py-3">
-            <span class="text-sm text-gray-500">Total ROI ({{ investment.duration_months }} months @ {{ investment.tier.return_rate }}% p.a.)</span>
-            <span class="text-sm font-medium text-green-600">+&#8358;{{ investment.total_roi|floatformat:2|intcomma }}</span>
-        </div>
-        <div class="flex justify-between py-3"><span class="text-sm font-bold text-gray-700">Net Return at Maturity</span><span class="text-sm font-bold text-green-600">&#8358;{{ investment.net_return|floatformat:2|intcomma }}</span></div>
-        {% endif %}
+        {% if investment.weekly_return %}
+<div class="flex justify-between py-3">
+    <span class="text-sm text-gray-500">Weekly Return</span>
+    <span class="text-sm font-medium text-green-600">&#8358;{{ investment.weekly_return|floatformat:2|intcomma }}</span>
+</div>
+<div class="flex justify-between py-3">
+    <span class="text-sm text-gray-500">Monthly Return</span>
+    <span class="text-sm font-medium text-green-600">&#8358;{{ investment.monthly_return|floatformat:2|intcomma }}</span>
+</div>
+<div class="flex justify-between py-3">
+    <span class="text-sm text-gray-500">Total Expected Return{% if investment.duration_weeks %} ({{ investment.duration_weeks }} weeks){% endif %}</span>
+    <span class="text-sm font-medium text-green-600">+&#8358;{{ investment.total_roi|floatformat:2|intcomma }}</span>
+</div>
+<div class="flex justify-between py-3">
+    <span class="text-sm font-bold text-gray-700">Net Return at Maturity</span>
+    <span class="text-sm font-bold text-green-600">&#8358;{{ investment.net_return|floatformat:2|intcomma }}</span>
+</div>
+{% endif %}
     </div>
 </div>
-
-{% if investment.roi_rate %}
+{% if investment.status == 'active' %}
 <div class="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8">
     <h2 class="text-base font-bold mb-4" style="color:#1a3a28;">Return Summary</h2>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
         <div>
-            <p class="text-sm text-gray-500">ROI Rate</p>
-            <p class="font-bold mt-1" style="color:#1a3a28;">{{ investment.roi_rate }}% p.a.</p>
+            <p class="text-sm text-gray-500">Weekly Return</p>
+            <p class="font-bold mt-1" style="color:#1a3a28;">&#8358;{{ investment.weekly_return|floatformat:2|intcomma }}</p>
         </div>
         <div>
-            <p class="text-sm text-gray-500">Expected Return</p>
-            <p class="font-bold text-green-600 mt-1">&#8358;{{ investment.expected_return|floatformat:2|intcomma }}</p>
+            <p class="text-sm text-gray-500">Monthly Return</p>
+            <p class="font-bold mt-1" style="color:#1a3a28;">&#8358;{{ investment.monthly_return|floatformat:2|intcomma }}</p>
         </div>
         <div>
             <p class="text-sm text-gray-500">Next Payment</p>
@@ -117,13 +127,25 @@
         </div>
     </div>
 </div>
-{% else %}
-<div class="rounded-xl p-4 mb-6 flex items-center gap-3" style="background:#fef9ec; border:1px solid #fcd34d;">
-    <svg class="w-5 h-5 shrink-0" style="color:#d97706;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-    </svg>
-    <p class="text-sm" style="color:#92400e;">ROI rate will be confirmed by admin upon investment activation.</p>
+{% elif investment.status == 'pending' or investment.status == 'awaiting_payment' %}
+<div class="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8">
+    <h2 class="text-base font-bold mb-4" style="color:#1a3a28;">Expected Returns</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+        <div>
+            <p class="text-sm text-gray-500">Weekly Return</p>
+            <p class="font-bold mt-1" style="color:#1a3a28;">&#8358;{{ investment.weekly_return|floatformat:2|intcomma }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">Monthly Return</p>
+            <p class="font-bold mt-1" style="color:#1a3a28;">&#8358;{{ investment.monthly_return|floatformat:2|intcomma }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">Duration</p>
+            <p class="font-bold mt-1" style="color:#1a3a28;">
+                {% if investment.duration_weeks %}{{ investment.duration_weeks }} weeks{% else %}To be confirmed{% endif %}
+            </p>
+        </div>
+    </div>
 </div>
 {% endif %}
 

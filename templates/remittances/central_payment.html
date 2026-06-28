@@ -11,12 +11,25 @@
 <!-- Ready for Payout -->
 {% if ready_for_payout %}
 <div class="mb-8">
-    <h2 class="text-base font-bold mb-4" style="color:#1a3a28;">
-        Ready for Payout
-        <span class="ml-2 text-xs px-2 py-1 rounded-full text-white" style="background:#1a3a28;">
-            {{ ready_for_payout|length }}
-        </span>
-    </h2>
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-base font-bold" style="color:#1a3a28;">
+            Ready for Payout
+            <span class="ml-2 text-xs px-2 py-1 rounded-full text-white" style="background:#1a3a28;">
+                {{ ready_for_payout|length }}
+            </span>
+        </h2>
+        {% if ready_for_payout|length > 1 %}
+        <form method="POST" action="{% url 'issue_all_payments' %}"
+            onsubmit="return confirm('Issue payouts to all {{ ready_for_payout|length }} investors at once? This cannot be undone.')">
+            {% csrf_token %}
+            <button type="submit"
+                class="text-white px-6 py-2.5 rounded-full font-semibold text-sm"
+                style="background:#e6b84a; color:#0f2419;">
+                Issue All ({{ ready_for_payout|length }})
+            </button>
+        </form>
+        {% endif %}
+    </div>
     <div class="space-y-3">
         {% for investment in ready_for_payout %}
         <div class="bg-white rounded-2xl shadow p-6 border-l-4" style="border-color:#1a3a28;">
@@ -96,11 +109,14 @@
                         {% if allocation.current_period_paid %}
                         <span class="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold">Paid</span>
                         {% else %}
-                        <a href="{% url 'log_asset_payment' allocation.pk %}"
-                            class="text-xs text-white px-4 py-2 rounded-full font-semibold"
-                            style="background:#1a3a28;">
-                            Log Payment
-                        </a>
+                       <form method="POST" action="{% url 'confirm_payment' allocation.pk %}">
+    {% csrf_token %}
+    <button type="submit"
+        class="text-xs text-white px-4 py-2 rounded-full font-semibold"
+        style="background:#1a3a28;">
+        Confirm Payment
+    </button>
+</form>
                         {% endif %}
                     </div>
                 </div>

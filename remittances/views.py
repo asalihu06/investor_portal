@@ -7,6 +7,9 @@ from investments.models import Investment
 from assets.models import AssetAllocation
 from .models import Remittance
 from datetime import date
+import json, hmac, hashlib
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 
 
 def get_expected_amount(allocation, investment):
@@ -166,6 +169,69 @@ def issue_payment_view(request, investment_pk):
 
     return redirect('central_payment')
 
+@admin_required
+def issue_all_payments_view(request):
+    if request.method != 'POST':
+        return redirect('central_payment')
+
+    from payouts.models import Payout
+    from transactions.models import Transaction
+    from auditlogs.models import AuditLog
+    from decimal import Decimal
+
+    active_investments = Investment.objects.filter(status='active')
+    issued_count = 0
+    total_issued = Decimal('0')
+
+    for investment in active_investments:
+        allocations = investment.allocations.all()
+        total = allocations.count()
+        if total == 0:
+            continue
+        all_paid = allocations.filter(current_period_paid=True).count() == total
+        if not all_paid:
+            continue
+
+        expected_amount = investment.expected_return()
+        today = date.today()
+
+        Payout.objects.create(
+            investment=investment,
+            amount=expected_amount,
+            status='paid',
+            payout_date=today,
+        )
+
+        Transaction.objects.create(
+            investment=investment,
+            transaction_type='return',
+            amount=expected_amount,
+            status='confirmed',
+            reference=f"RET-{investment.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}",
+        )
+
+        allocations.update(current_period_paid=False)
+
+        investment.remittances.filter(
+            payout_generated=False
+        ).update(payout_generated=True)
+
+        AuditLog.objects.create(
+            user=request.user,
+            action='Payment Issued',
+            model_name='Investment',
+            object_id=investment.id,
+            details=f"₦{expected_amount:,.2f} issued to {investment.investor.user.username} via bulk issue."
+        )
+
+        issued_count += 1
+        total_issued += expected_amount
+
+    messages.success(
+        request,
+        f'{issued_count} payment(s) issued, totaling ₦{total_issued:,.2f}.'
+    )
+    return redirect('central_payment')
 
 @admin_required
 def remittance_list_view(request):
@@ -175,3 +241,120 @@ def remittance_list_view(request):
     return render(request, 'remittances/remittance_list.html', {
         'remittances': remittances
     })
+
+@admin_required
+def confirm_payment_view(request, allocation_pk):
+    allocation = get_object_or_404(AssetAllocation, pk=allocation_pk)
+    investment = allocation.investment
+
+    if request.method != 'POST':
+        return redirect('central_payment')
+
+    if investment.status != 'active':
+        messages.error(request, 'Investment is not active.')
+        return redirect('central_payment')
+
+    if allocation.current_period_paid:
+        messages.warning(request, f'{allocation.asset.name} already confirmed for this cycle.')
+        return redirect('central_payment')
+
+    expected = get_expected_amount(allocation, investment)
+    today = date.today()
+
+    Remittance.objects.create(
+        investment=investment,
+        allocation=allocation,
+        hirer_name=allocation.hirer_name or 'Hirer',
+        amount_received=expected,
+        expected_amount=expected,
+        received_date=today,
+        status='received',
+        notes='',
+        recorded_by=request.user,
+    )
+
+    allocation.current_period_paid = True
+    allocation.last_payment_date = today
+    allocation.save()
+
+    messages.success(request, f'Payment confirmed for {allocation.asset.name}.')
+    return redirect('central_payment')
+
+
+@admin_required
+def edit_hirer_view(request, allocation_pk):
+    allocation = get_object_or_404(AssetAllocation, pk=allocation_pk)
+    investment = allocation.investment
+
+    if request.method == 'POST':
+        allocation.hirer_name = request.POST.get('hirer_name', '').strip()
+        allocation.hirer_phone = request.POST.get('hirer_phone', '').strip()
+        allocation.save()
+        messages.success(request, f'Hirer details updated for {allocation.asset.name}.')
+        return redirect('manage_investment', pk=investment.pk)
+
+    return render(request, 'remittances/edit_hirer.html', {
+        'allocation': allocation,
+        'investment': investment,
+    })
+
+
+@csrf_exempt
+def paystack_webhook_view(request):
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+
+    paystack_secret = settings.PAYSTACK_SECRET_KEY.encode('utf-8')
+    signature = request.headers.get('X-Paystack-Signature', '')
+    computed = hmac.new(paystack_secret, request.body, hashlib.sha512).hexdigest()
+
+    if signature != computed:
+        return HttpResponse(status=401)
+
+    payload = json.loads(request.body)
+    event = payload.get('event')
+
+    if event != 'charge.success':
+        return HttpResponse(status=200)
+
+    data = payload.get('data', {})
+    metadata = data.get('metadata', {})
+    allocation_pk = metadata.get('allocation_pk')
+
+    if not allocation_pk:
+        return HttpResponse(status=200)
+
+    try:
+        allocation = AssetAllocation.objects.get(pk=allocation_pk)
+        investment = allocation.investment
+
+        if investment.status != 'active':
+            return HttpResponse(status=200)
+
+        if allocation.current_period_paid:
+            return HttpResponse(status=200)
+
+        expected = get_expected_amount(allocation, investment)
+        today = date.today()
+
+        Remittance.objects.create(
+            investment=investment,
+            allocation=allocation,
+            hirer_name=allocation.hirer_name or 'Hirer',
+            amount_received=expected,
+            expected_amount=expected,
+            received_date=today,
+            status='received',
+            notes='Auto-confirmed via Paystack',
+            recorded_by=None,
+        )
+
+        allocation.current_period_paid = True
+        allocation.last_payment_date = today
+        allocation.save()
+
+    except AssetAllocation.DoesNotExist:
+        pass
+
+    return HttpResponse(status=200)

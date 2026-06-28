@@ -7,6 +7,7 @@ from investors.models import InvestorProfile
 from accounts.decorators import admin_required, investor_required
 from .services import activate_investment, generate_payout, complete_investment, cancel_investment, issue_payment
 from assets.models import Asset, AssetAllocation
+from assets.paystack import create_payment_page 
 
 
 @investor_required
@@ -269,11 +270,44 @@ def admin_assign_assets_view(request, pk):
         assets = Asset.objects.filter(id__in=asset_ids, status='available')
         created = 0
         for asset in assets:
-            AssetAllocation.objects.bulk_create([
-                AssetAllocation(investment=investment, asset=asset)
-            ])
+            hirer_name = request.POST.get(f'hirer_name_{asset.pk}', '').strip()
+            hirer_phone = request.POST.get(f'hirer_phone_{asset.pk}', '').strip()
+
+            allocation = AssetAllocation.objects.create(
+                investment=investment,
+                asset=asset,
+                hirer_name=hirer_name,
+                hirer_phone=hirer_phone,
+            )
             asset.status = 'allocated'
             asset.save()
+
+            
+            weekly = asset.weekly_return or Decimal('0')
+            if investment.payout_frequency == 'monthly':
+                amount = weekly * Decimal('4')
+                freq_label = 'Monthly'
+            else:
+                amount = weekly
+                freq_label = 'Weekly'
+
+            amount_kobo = int(amount * 100)
+            page_name = f"Enigma Transport — {asset.asset_code} {freq_label} Payment"
+            description = f"Hire purchase remittance for {asset.name} ({asset.asset_code})"
+
+            try:
+                page_id, payment_link = create_payment_page(
+                    name=page_name,
+                    amount_kobo=amount_kobo,
+                    description=description,
+                    allocation_pk=allocation.pk,
+                )
+                allocation.paystack_page_id = page_id
+                allocation.paystack_payment_link = payment_link
+                allocation.save()
+            except ValueError as e:
+                messages.warning(request, f'Asset assigned but payment link failed for {asset.name}: {e}')
+
             created += 1
 
         from auditlogs.models import AuditLog
@@ -282,13 +316,12 @@ def admin_assign_assets_view(request, pk):
             action='Assets Assigned',
             model_name='Investment',
             object_id=investment.id,
-            details=f"{created} asset(s) assigned to investment {investment.id}."
+            details=f"{created} asset(s) assigned to investment {investment.id} with payment links."
         )
 
-        messages.success(request, f'{created} asset(s) assigned successfully.')
+        messages.success(request, f'{created} asset(s) assigned successfully with payment links.')
 
     return redirect('manage_investment', pk=pk)
-
 
 @admin_required
 def activate_investment_view(request, pk):

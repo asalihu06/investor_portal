@@ -77,11 +77,14 @@ class AssetAllocation(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     hirer_name = models.CharField(max_length=200, blank=True)
     hirer_phone = models.CharField(max_length=20, blank=True)
-    allocated_at = models.DateTimeField(auto_now_add=True)
-
-    # Payment tracking
+    allocated_at = models.DateTimeField(auto_now_add=True)   
     current_period_paid = models.BooleanField(default=False)
     last_payment_date = models.DateField(null=True, blank=True)
+    
+    paystack_page_id = models.CharField(max_length=100, blank=True)
+    paystack_payment_link = models.URLField(blank=True)
+
+
 
     class Meta:
         unique_together = ('investment', 'asset')

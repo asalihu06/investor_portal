@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
+from django.shortcuts import redirect
 
 urlpatterns = [
+    path('', lambda request: redirect('login_choice'), name='home'),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('investors/', include('investors.urls')),
@@ -37,7 +39,7 @@ urlpatterns = [
             template_name='accounts/password_reset_complete.html'
         ),
         name='password_reset_complete'),
-    # Change Password
+    # Reset Password
     path('accounts/password-change/',
         auth_views.PasswordChangeView.as_view(
             template_name='accounts/password_change.html',
