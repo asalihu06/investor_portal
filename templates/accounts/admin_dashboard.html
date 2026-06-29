@@ -9,124 +9,198 @@
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-[#e6b84a]">
-        <p class="text-sm text-gray-500">Total Investors</p>
-        <p class="text-3xl font-bold text-[#0f2419] mt-1">{{ total_investors|intcomma }}</p>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+  <!-- Total Investors -->
+  <div class="bg-white border border-gray-200 rounded-xl p-4">
+    <div class="flex items-center justify-between mb-2.5">
+      <span class="text-[11px] text-gray-400 uppercase tracking-wider">Total investors</span>
+      <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" style="background:rgba(200,155,60,0.12);color:#c89b3c;">All tiers</span>
     </div>
-    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-blue-400 overflow-hidden">
-        <p class="text-sm text-gray-500">Total Investments</p>
-        <p class="text-xl sm:text-2xl font-bold text-[#0f2419] mt-1 truncate" title="₦{{ total_investments|floatformat:2|intcomma }}">
-            &#8358;{{ total_investments|floatformat:2|intcomma }}
-        </p>
+    <div class="text-2xl font-medium text-gray-900 leading-none">{{ total_investors }}</div>
+    <div class="text-xs text-gray-400 mt-1.5">Registered on platform</div>
+    <div class="h-[3px] rounded-full bg-gray-100 mt-3">
+      <div class="h-full rounded-full" style="width:40%;background:#c89b3c;"></div>
     </div>
-    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-yellow-400">
-        <p class="text-sm text-gray-500">Pending KYC</p>
-        <p class="text-3xl font-bold text-yellow-600 mt-1">{{ pending_kyc|intcomma }}</p>
+  </div>
+
+  <!-- Total Investments -->
+  <div class="bg-white border border-gray-200 rounded-xl p-4">
+    <div class="flex items-center justify-between mb-2.5">
+      <span class="text-[11px] text-gray-400 uppercase tracking-wider">Total investments</span>
+      <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" style="background:rgba(26,58,40,0.12);color:#1a3a28;">Portfolio</span>
     </div>
-    <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-green-400">
-        <p class="text-sm text-gray-500">Active Investments</p>
-        <p class="text-3xl font-bold text-green-600 mt-1">{{ active_investments|intcomma }}</p>
+    <div class="text-2xl font-medium text-gray-900 leading-none">₦{{ total_investments|floatformat:2|intcomma }}</div>
+    <div class="text-xs text-gray-400 mt-1.5">Across all investors</div>
+    <div class="h-[3px] rounded-full bg-gray-100 mt-3">
+      <div class="h-full rounded-full" style="width:73%;background:#1a3a28;"></div>
     </div>
+  </div>
+
+  <!-- Pending KYC -->
+  <div class="bg-white border border-gray-200 rounded-xl p-4">
+    <div class="flex items-center justify-between mb-2.5">
+      <span class="text-[11px] text-gray-400 uppercase tracking-wider">Pending KYC</span>
+      <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" style="background:rgba(230,184,74,0.15);color:#9a7020;">Review</span>
+    </div>
+    <div class="text-2xl font-medium leading-none" style="color:#c89b3c;">{{ pending_kyc }}</div>
+    <div class="text-xs text-gray-400 mt-1.5">Awaiting approval</div>
+    <div class="h-[3px] rounded-full bg-gray-100 mt-3">
+      <div class="h-full rounded-full" style="width:0%;background:#e6b84a;"></div>
+    </div>
+  </div>
+
+  <!-- Active Investments -->
+  <div class="bg-white border border-gray-200 rounded-xl p-4">
+    <div class="flex items-center justify-between mb-2.5">
+      <span class="text-[11px] text-gray-400 uppercase tracking-wider">Active investments</span>
+      <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" style="background:rgba(15,123,62,0.1);color:#0f7b3e;">Live</span>
+    </div>
+    <div class="text-2xl font-medium leading-none" style="color:#0f7b3e;">{{ active_investments }}</div>
+    <div class="text-xs text-gray-400 mt-1.5">Currently earning</div>
+    <div class="h-[3px] rounded-full bg-gray-100 mt-3">
+      <div class="h-full rounded-full" style="width:60%;background:#0f7b3e;"></div>
+    </div>
+  </div>
+
 </div>
+
+{% load humanize %}
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
     <!-- Recent Investments -->
-    <div class="bg-white rounded-2xl shadow p-8">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-lg font-bold text-[#0f2419]">Recent Investments</h2>
-            <a href="{% url 'admin_investment_list' %}" class="text-sm text-[#1a3a28] hover:underline">Manage &rarr;</a>
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="flex justify-between items-center px-5 py-4 border-b border-gray-100">
+            <h2 class="text-[15px] font-medium text-gray-900">Recent investments</h2>
+            <a href="{% url 'admin_investment_list' %}" class="text-xs flex items-center gap-1" style="color:#c89b3c;">
+                Manage
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
         </div>
         {% if recent_investments %}
-        <div class="space-y-3">
             {% for investment in recent_investments %}
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 border rounded-xl p-4">
-                <div class="min-w-0">
-                    <p class="font-medium text-gray-800 truncate">{{ investment.investor.user.username }}</p>
-                    <p class="text-sm text-gray-500 whitespace-nowrap">{{ investment.tier.name }} · {{ investment.created_at|date:"M d, Y" }}</p>
+            <div class="flex items-center gap-3 px-5 py-3 border-b border-gray-100 last:border-b-0">
+                <div class="w-[34px] h-[34px] rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0" style="background:#0f2419;color:#c89b3c;">
+                    {{ investment.investor.user.username|slice:":2"|upper }}
                 </div>
-                <div class="flex flex-wrap gap-2 items-center sm:justify-end sm:shrink-0">
-                    <p class="font-bold text-[#0f2419] text-sm whitespace-nowrap">₦{{ investment.investment_amount|floatformat:2|intcomma }}</p>
-                    <span class="text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap
-                        {% if investment.status == 'active' %}bg-green-100 text-green-700
-                        {% elif investment.status == 'pending' %}bg-yellow-100 text-yellow-700
-                        {% elif investment.status == 'completed' %}bg-blue-100 text-blue-700
-                        {% else %}bg-red-100 text-red-700{% endif %}">
-                        {{ investment.get_status_display }}
-                    </span>
-                    <a href="{% url 'manage_investment' investment.pk %}"
-                        class="bg-[#1a3a28] text-white px-3 py-1 rounded-full text-xs hover:bg-[#0f2419] transition whitespace-nowrap">
-                        Manage
-                    </a>
+                <div class="flex-1 min-w-0">
+                    <div class="text-[13px] font-medium text-gray-900 truncate">{{ investment.investor.user.username }}</div>
+                    <div class="text-[11px] text-gray-400 mt-0.5">{{ investment.tier.name|upper }} · {{ investment.created_at|date:"M d, Y" }}</div>
                 </div>
+                <div class="text-[13px] font-medium text-gray-900 whitespace-nowrap">₦{{ investment.investment_amount|floatformat:2|intcomma }}</div>
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap
+                    {% if investment.status == 'active' %}bg-green-100 text-green-700
+                    {% elif investment.status == 'pending' %}bg-yellow-100 text-yellow-700
+                    {% elif investment.status == 'completed' %}bg-blue-100 text-blue-700
+                    {% else %}bg-red-100 text-red-700{% endif %}">
+                    {{ investment.get_status_display }}
+                </span>
+                <a href="{% url 'manage_investment' investment.pk %}" class="text-[11px] font-medium px-2.5 py-1 rounded-md whitespace-nowrap" style="background:#0f2419;color:#c89b3c;">Manage</a>
             </div>
             {% endfor %}
-        </div>
         {% else %}
-        <p class="text-gray-400 text-sm text-center py-6">No investments yet.</p>
+            <p class="text-gray-400 text-sm text-center py-8">No investments yet.</p>
         {% endif %}
     </div>
 
     <!-- Recent Transactions -->
-    <div class="bg-white rounded-2xl shadow p-8">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-lg font-bold text-[#0f2419]">Recent Transactions</h2>
-            <a href="{% url 'admin_transaction_list' %}" class="text-sm text-[#1a3a28] hover:underline">Manage &rarr;</a>
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="flex justify-between items-center px-5 py-4 border-b border-gray-100">
+            <h2 class="text-[15px] font-medium text-gray-900">Recent transactions</h2>
+            <a href="{% url 'admin_transaction_list' %}" class="text-xs flex items-center gap-1" style="color:#c89b3c;">
+                Manage
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
         </div>
         {% if recent_transactions %}
-        <div class="space-y-3">
             {% for tx in recent_transactions %}
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 border rounded-xl p-4">
-                <div class="min-w-0">
-                    <p class="font-medium text-gray-800 capitalize truncate">{{ tx.transaction_type }}</p>
-                    <p class="text-sm text-gray-500 whitespace-nowrap">{{ tx.investment.investor.user.username }} · {{ tx.created_at|date:"M d, Y" }}</p>
+            <div class="flex items-center gap-3 px-5 py-3 border-b border-gray-100 last:border-b-0">
+                <div class="w-[34px] h-[34px] rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(15,123,62,0.1);color:#0f7b3e;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
                 </div>
-                <div class="flex flex-wrap gap-2 items-center sm:justify-end sm:shrink-0">
-                    <p class="font-bold text-[#0f2419] text-sm whitespace-nowrap">₦{{ tx.amount|floatformat:2|intcomma }}</p>
-                    <span class="text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap
+                <div class="flex-1 min-w-0">
+                    <div class="text-[13px] font-medium text-gray-900 capitalize truncate">{{ tx.transaction_type }}</div>
+                    <div class="text-[11px] text-gray-400 mt-0.5">{{ tx.investment.investor.user.username }} · {{ tx.created_at|date:"M d, Y" }}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[13px] font-medium text-gray-900 whitespace-nowrap">₦{{ tx.amount|floatformat:2|intcomma }}</div>
+                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full inline-block mt-0.5 whitespace-nowrap
                         {% if tx.status == 'confirmed' %}bg-green-100 text-green-700
                         {% elif tx.status == 'pending' %}bg-yellow-100 text-yellow-700
                         {% else %}bg-red-100 text-red-700{% endif %}">
                         {{ tx.status }}
                     </span>
                 </div>
+                <a href="{% url 'admin_transaction_list' %}" class="text-[11px] whitespace-nowrap" style="color:#c89b3c;">View</a>
             </div>
             {% endfor %}
-        </div>
         {% else %}
-        <p class="text-gray-400 text-sm text-center py-6">No transactions yet.</p>
+            <p class="text-gray-400 text-sm text-center py-8">No transactions yet.</p>
         {% endif %}
     </div>
+
 </div>
 
 <!-- Admin Quick Actions -->
-<div class="bg-white rounded-2xl shadow p-8">
-    <h2 class="text-lg font-bold text-[#0f2419] mb-6">Admin Actions</h2>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <a href="{% url 'admin_investor_list' %}"
-            class="bg-[#1a3a28] text-white text-center py-4 rounded-xl font-medium hover:bg-[#0f2419] transition text-sm">
-            Manage Investors
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="text-[15px] font-medium text-gray-900">Admin actions</h2>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-px bg-gray-100">
+        <a href="{% url 'admin_investor_list' %}" class="bg-white px-5 py-4 flex items-center gap-3 hover:bg-gray-50 transition group">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#0f2419;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c89b3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div>
+                <div class="text-[13px] font-medium text-gray-900">Manage investors</div>
+                <div class="text-[11px] text-gray-400 mt-0.5">View &amp; edit accounts</div>
+            </div>
         </a>
-        <a href="{% url 'admin_investment_list' %}"
-            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
-            Manage Investments
+        <a href="{% url 'admin_investment_list' %}" class="bg-white px-5 py-4 flex items-center gap-3 hover:bg-gray-50 transition group">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(200,155,60,0.12);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c89b3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+                <div class="text-[13px] font-medium text-gray-900">Manage investments</div>
+                <div class="text-[11px] text-gray-400 mt-0.5">Track portfolio</div>
+            </div>
         </a>
-        <a href="{% url 'admin_asset_list' %}"
-            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
-            Manage Assets
+        <a href="{% url 'admin_asset_list' %}" class="bg-white px-5 py-4 flex items-center gap-3 hover:bg-gray-50 transition group">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(200,155,60,0.12);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c89b3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <div>
+                <div class="text-[13px] font-medium text-gray-900">Manage assets</div>
+                <div class="text-[11px] text-gray-400 mt-0.5">Vehicles &amp; equipment</div>
+            </div>
         </a>
-        <a href="{% url 'admin_transaction_list' %}"
-            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
-            Manage Transactions
+        <a href="{% url 'admin_transaction_list' %}" class="bg-white px-5 py-4 flex items-center gap-3 hover:bg-gray-50 transition group">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(200,155,60,0.12);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c89b3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            </div>
+            <div>
+                <div class="text-[13px] font-medium text-gray-900">Manage transactions</div>
+                <div class="text-[11px] text-gray-400 mt-0.5">Payments &amp; returns</div>
+            </div>
         </a>
-        <a href="{% url 'admin_payout_list' %}"
-            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
-            Manage Payouts
+        <a href="{% url 'admin_payout_list' %}" class="bg-white px-5 py-4 flex items-center gap-3 hover:bg-gray-50 transition group">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(200,155,60,0.12);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c89b3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+                <div class="text-[13px] font-medium text-gray-900">Manage payouts</div>
+                <div class="text-[11px] text-gray-400 mt-0.5">Investor disbursements</div>
+            </div>
         </a>
-        <a href="{% url 'admin_auditlog_list' %}"
-            class="bg-gray-100 text-[#0f2419] text-center py-4 rounded-xl font-medium hover:bg-gray-200 transition text-sm">
-            Audit Logs
+        <a href="{% url 'admin_auditlog_list' %}" class="bg-white px-5 py-4 flex items-center gap-3 hover:bg-gray-50 transition group">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(200,155,60,0.12);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c89b3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <div>
+                <div class="text-[13px] font-medium text-gray-900">Audit logs</div>
+                <div class="text-[11px] text-gray-400 mt-0.5">Activity history</div>
+            </div>
         </a>
     </div>
 </div>

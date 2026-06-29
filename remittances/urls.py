@@ -9,5 +9,6 @@ urlpatterns = [
     path('issue-all/', views.issue_all_payments_view, name='issue_all_payments'),
     path('confirm/<int:allocation_pk>/', views.confirm_payment_view, name='confirm_payment'),
     path('hirer/<int:allocation_pk>/edit/', views.edit_hirer_view, name='edit_hirer'),
-    path('webhook/paystack', views.paystack_webhook_view, name='paystack_hirer_webhook')
+    path('webhook/paystack', views.paystack_webhook_view, name='paystack_hirer_webhook'),
+    path('confirm-all/', views.confirm_all_payments_view, name='confirm_all_payments'),
 ]

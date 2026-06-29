@@ -10,6 +10,7 @@ from datetime import date
 import json, hmac, hashlib
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
+from django.conf import settings
 
 
 def get_expected_amount(allocation, investment):
@@ -307,7 +308,7 @@ def paystack_webhook_view(request):
 
     paystack_secret = settings.PAYSTACK_SECRET_KEY.encode('utf-8')
     signature = request.headers.get('X-Paystack-Signature', '')
-    computed = hmac.new(paystack_secret, request.body, hashlib.sha512).hexdigest()
+    computed = hmac.new(key=paystack_secret, msg=request.body, digestmod=hashlib.sha512).hexdigest()
 
     if signature != computed:
         return HttpResponse(status=401)
@@ -358,3 +359,40 @@ def paystack_webhook_view(request):
         pass
 
     return HttpResponse(status=200)
+
+@admin_required
+def confirm_all_payments_view(request):
+    if request.method != 'POST':
+        return redirect('central_payment')
+
+    pending_allocations = AssetAllocation.objects.filter(
+        investment__status='active',
+        current_period_paid=False
+    ).select_related('asset', 'investment')
+
+    confirmed_count = 0
+    today = date.today()
+
+    for allocation in pending_allocations:
+        investment = allocation.investment
+        expected = get_expected_amount(allocation, investment)
+
+        Remittance.objects.create(
+            investment=investment,
+            allocation=allocation,
+            hirer_name=allocation.hirer_name or 'Hirer',
+            amount_received=expected,
+            expected_amount=expected,
+            received_date=today,
+            status='received',
+            notes='Bulk confirmed',
+            recorded_by=request.user,
+        )
+
+        allocation.current_period_paid = True
+        allocation.last_payment_date = today
+        allocation.save()
+        confirmed_count += 1
+
+    messages.success(request, f'{confirmed_count} payment(s) confirmed across all active investments.')
+    return redirect('central_payment')

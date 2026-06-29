@@ -1,55 +1,70 @@
 {% extends 'base.html' %}
 {% load humanize %}
-{% block title %}Central Payments — Enigma Admin{% endblock %}
+{% block title %}Central Payments &dash; Enigma Admin{% endblock %}
 
 {% block dashboard_content %}
-<div class="mb-8">
-    <h1 class="text-2xl font-bold" style="color:#1a3a28;">Central Payments</h1>
-    <p class="text-gray-500 mt-1 text-sm">Log hirer payments and issue investor payouts</p>
+<div class="mb-8 flex items-start justify-between">
+    <div>
+        <h1 class="text-2xl font-medium text-gray-900">Central payments</h1>
+        <p class="text-gray-400 mt-1 text-sm">Log hirer payments and issue investor payouts</p>
+    </div>
+    {% if pending_payments %}
+    <form method="POST" action="{% url 'confirm_all_payments' %}"
+        onsubmit="return confirm('Confirm ALL pending hirer payments across every active investment? This cannot be undone.')">
+        {% csrf_token %}
+        <button type="submit"
+            class="text-[12px] font-medium px-4 py-2 rounded-lg"
+            style="background:#0f2419;color:#c89b3c;">
+            Confirm All Payments
+        </button>
+    </form>
+    {% endif %}
 </div>
 
 <!-- Ready for Payout -->
 {% if ready_for_payout %}
 <div class="mb-8">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-base font-bold" style="color:#1a3a28;">
-            Ready for Payout
-            <span class="ml-2 text-xs px-2 py-1 rounded-full text-white" style="background:#1a3a28;">
+    <div class="flex justify-between items-center mb-3">
+        <div class="flex items-center gap-2">
+            <h2 class="text-[13px] font-medium uppercase tracking-wider text-gray-400">Ready for payout</h2>
+            <span class="text-[10px] font-medium px-2 py-0.5 rounded-full text-white" style="background:#0f2419;">
                 {{ ready_for_payout|length }}
             </span>
-        </h2>
+        </div>
         {% if ready_for_payout|length > 1 %}
         <form method="POST" action="{% url 'issue_all_payments' %}"
             onsubmit="return confirm('Issue payouts to all {{ ready_for_payout|length }} investors at once? This cannot be undone.')">
             {% csrf_token %}
             <button type="submit"
-                class="text-white px-6 py-2.5 rounded-full font-semibold text-sm"
-                style="background:#e6b84a; color:#0f2419;">
-                Issue All ({{ ready_for_payout|length }})
+                class="text-[12px] font-medium px-4 py-2 rounded-lg"
+                style="background:#c89b3c;color:#0f2419;">
+                Issue all ({{ ready_for_payout|length }})
             </button>
         </form>
         {% endif %}
     </div>
-    <div class="space-y-3">
+
+    <div class="flex flex-col gap-3">
         {% for investment in ready_for_payout %}
-        <div class="bg-white rounded-2xl shadow p-6 border-l-4" style="border-color:#1a3a28;">
-            <div class="flex justify-between items-center">
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-4">
                 <div>
-                    <p class="font-bold text-gray-800">{{ investment.investor.user.username }}</p>
-                    <p class="text-sm text-gray-500">
-                        {{ investment.tier.name }} ·
-                        {{ investment.payout_frequency|capfirst }} ·
-                        ₦{{ investment.expected_return|floatformat:2|intcomma }}
+                    <div class="flex items-center gap-2 mb-0.5">
+                        <span class="text-[14px] font-medium text-gray-900">{{ investment.investor.user.username }}</span>
+                        <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" style="background:rgba(15,123,62,0.1);color:#0f7b3e;">All assets paid</span>
+                    </div>
+                    <p class="text-[12px] text-gray-400">
+                        {{ investment.tier.name }} · {{ investment.payout_frequency|capfirst }} · ₦{{ investment.expected_return|floatformat:2|intcomma }}
                     </p>
-                    <p class="text-xs mt-1" style="color:#1a3a28;">
-                        All {{ investment.allocations.count }} asset(s) paid ✓
+                    <p class="text-[11px] mt-1" style="color:#0f7b3e;">
+                        All {{ investment.allocations.count }} asset(s) confirmed ✓
                     </p>
                 </div>
                 <form method="POST" action="{% url 'issue_payment' investment.pk %}">
                     {% csrf_token %}
                     <button type="submit"
-                        class="text-white px-6 py-3 rounded-full font-semibold text-sm"
-                        style="background:#1a3a28;"
+                        class="text-[12px] font-medium px-5 py-2.5 rounded-lg whitespace-nowrap"
+                        style="background:#0f2419;color:#c89b3c;"
                         onclick="return confirm('Issue ₦{{ investment.expected_return|floatformat:2 }} to {{ investment.investor.user.username }}?')">
                         Issue ₦{{ investment.expected_return|floatformat:2|intcomma }}
                     </button>
@@ -63,60 +78,63 @@
 
 <!-- Pending Payments -->
 <div>
-    <h2 class="text-base font-bold mb-4" style="color:#1a3a28;">
-        Pending Hirer Payments
-        <span class="ml-2 text-xs px-2 py-1 rounded-full text-white" style="background:#9ca3af;">
+    <div class="flex items-center gap-2 mb-3">
+        <h2 class="text-[13px] font-medium uppercase tracking-wider text-gray-400">Pending hirer payments</h2>
+        <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" style="background:#f3f4f6;color:#6b7280;">
             {{ pending_payments|length }}
         </span>
-    </h2>
+    </div>
 
     {% if pending_payments %}
-    <div class="space-y-4">
+    <div class="flex flex-col gap-4">
         {% for item in pending_payments %}
-        <div class="bg-white rounded-2xl shadow p-6">
-            <div class="flex justify-between items-start mb-4">
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+
+            <!-- Card header -->
+            <div class="flex justify-between items-center px-5 py-4 border-b border-gray-100">
                 <div>
-                    <p class="font-bold text-gray-800">{{ item.investment.investor.user.username }}</p>
-                    <p class="text-sm text-gray-500">
-                        {{ item.investment.tier.name }} ·
-                        {{ item.investment.payout_frequency|capfirst }} ·
-                        ₦{{ item.investment.expected_return|floatformat:2|intcomma }}
+                    <span class="text-[14px] font-medium text-gray-900">{{ item.investment.investor.user.username }}</span>
+                    <p class="text-[12px] text-gray-400 mt-0.5">
+                        {{ item.investment.tier.name }} · {{ item.investment.payout_frequency|capfirst }} · ₦{{ item.investment.expected_return|floatformat:2|intcomma }}
                     </p>
                 </div>
-                <span class="text-xs px-3 py-1 rounded-full font-semibold bg-yellow-100 text-yellow-700">
+                <span class="text-[10px] font-medium px-2.5 py-1 rounded-full" style="background:rgba(230,184,74,0.15);color:#9a7020;">
                     {{ item.paid }}/{{ item.total }} paid
                 </span>
             </div>
 
-            <!-- Per asset payment status -->
-            <div class="space-y-2">
+            <!-- Per-asset rows -->
+            <div>
                 {% for allocation in item.allocations %}
-                <div class="flex justify-between items-center border rounded-xl p-4">
+                <div class="flex justify-between items-center px-5 py-3 border-b border-gray-100 last:border-b-0">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-                            style="{% if allocation.current_period_paid %}background:#e8f0eb; color:#1a3a28;{% else %}background:#f3f4f6; color:#9ca3af;{% endif %}">
-                            {% if allocation.current_period_paid %}✓{% else %}—{% endif %}
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0"
+                            style="{% if allocation.current_period_paid %}background:rgba(15,123,62,0.1);color:#0f7b3e;{% else %}background:#f3f4f6;color:#9ca3af;{% endif %}">
+                            {% if allocation.current_period_paid %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            {% else %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            {% endif %}
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-800">{{ allocation.asset.name }}</p>
-                            <p class="text-xs text-gray-500">
-                                {{ allocation.asset.asset_code }}
-                                {% if allocation.hirer_name %} · {{ allocation.hirer_name }}{% endif %}
+                            <p class="text-[13px] font-medium text-gray-900">{{ allocation.asset.name }}</p>
+                            <p class="text-[11px] text-gray-400">
+                                {{ allocation.asset.asset_code }}{% if allocation.hirer_name %} · {{ allocation.hirer_name }}{% endif %}
                             </p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div>
                         {% if allocation.current_period_paid %}
-                        <span class="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold">Paid</span>
+                        <span class="text-[10px] font-medium px-2.5 py-1 rounded-full" style="background:rgba(15,123,62,0.1);color:#0f7b3e;">Paid</span>
                         {% else %}
-                       <form method="POST" action="{% url 'confirm_payment' allocation.pk %}">
-    {% csrf_token %}
-    <button type="submit"
-        class="text-xs text-white px-4 py-2 rounded-full font-semibold"
-        style="background:#1a3a28;">
-        Confirm Payment
-    </button>
-</form>
+                        <form method="POST" action="{% url 'confirm_payment' allocation.pk %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                class="text-[11px] font-medium px-4 py-2 rounded-lg whitespace-nowrap"
+                                style="background:#0f2419;color:#c89b3c;">
+                                Confirm payment
+                            </button>
+                        </form>
                         {% endif %}
                     </div>
                 </div>
@@ -125,12 +143,12 @@
         </div>
         {% endfor %}
     </div>
+
     {% else %}
-    <div class="bg-white rounded-2xl shadow p-12 text-center">
-        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
+    <div class="bg-white border border-gray-200 rounded-xl px-6 py-14 text-center">
+        <div class="w-10 h-10 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:rgba(15,123,62,0.1);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f7b3e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
         <p class="text-gray-400 text-sm">No pending payments.</p>
     </div>
     {% endif %}
