@@ -23,7 +23,7 @@
 {% endif %}
 
 <!-- Stats -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
     <div class="bg-white border border-gray-200 rounded-xl p-4">
         <div class="flex items-center justify-between mb-2.5">
             <span class="text-[11px] text-gray-400 uppercase tracking-wider">Total invested</span>
@@ -48,13 +48,25 @@
         </div>
     </div>
 
-    <div class="bg-white border border-gray-200 rounded-xl p-4">
+<div class="bg-white border border-gray-200 rounded-xl p-4">
         <div class="flex items-center justify-between mb-2.5">
             <span class="text-[11px] text-gray-400 uppercase tracking-wider">Weekly return</span>
             <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" style="background:rgba(15,123,62,0.1);color:#0f7b3e;">Live</span>
         </div>
         <p class="text-2xl font-medium" style="color:#0f7b3e;">&#8358;{{ total_weekly_return|floatformat:2|intcomma }}</p>
-        <div class="text-xs text-gray-400 mt-1.5">Per payout cycle</div>
+        <div class="text-xs text-gray-400 mt-1.5">Weekly investments</div>
+        <div class="h-[3px] rounded-full bg-gray-100 mt-3">
+            <div class="h-full rounded-full" style="width:60%;background:#0f7b3e;"></div>
+        </div>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-2.5">
+            <span class="text-[11px] text-gray-400 uppercase tracking-wider">Monthly return</span>
+            <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" style="background:rgba(15,123,62,0.1);color:#0f7b3e;">Live</span>
+        </div>
+        <p class="text-2xl font-medium" style="color:#0f7b3e;">&#8358;{{ total_monthly_return|floatformat:2|intcomma }}</p>
+        <div class="text-xs text-gray-400 mt-1.5">Monthly investments</div>
         <div class="h-[3px] rounded-full bg-gray-100 mt-3">
             <div class="h-full rounded-full" style="width:60%;background:#0f7b3e;"></div>
         </div>

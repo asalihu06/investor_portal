@@ -77,7 +77,6 @@ def dashboard_view(request):
         return redirect('admin_dashboard')
     return redirect('investor_dashboard')
 
-
 @investor_required
 def investor_dashboard_view(request):
     if request.user.role == 'admin':
@@ -101,9 +100,16 @@ def investor_dashboard_view(request):
     for inv in active_investments:
         total_paid_out += inv.total_paid_out()
 
+    weekly_investments = active_investments.filter(payout_frequency='weekly')
+    monthly_investments = active_investments.filter(payout_frequency='monthly')
+
     total_weekly_return = sum(
-        inv.weekly_return() for inv in active_investments
-    )
+        inv.weekly_return() for inv in weekly_investments
+    ) or Decimal('0')
+
+    total_monthly_return = sum(
+        inv.monthly_return() for inv in monthly_investments
+    ) or Decimal('0')
 
     next_payments = [
         inv.next_payment_date() for inv in active_investments
@@ -118,10 +124,10 @@ def investor_dashboard_view(request):
         'total_invested': total_invested,
         'total_paid_out': total_paid_out,
         'total_weekly_return': total_weekly_return,
+        'total_monthly_return': total_monthly_return,
         'next_payment': next_payment,
     }
     return render(request, 'accounts/investor_dashboard.html', context)
-
 
 @login_required
 def admin_dashboard_view(request):

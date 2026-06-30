@@ -83,15 +83,18 @@
         <div class="flex justify-between py-3"><span class="text-sm text-gray-500">Service Charge</span><span class="text-sm font-medium text-gray-800">&#8358;{{ investment.service_charge|floatformat:2|intcomma }}</span></div>
         <div class="flex justify-between py-3"><span class="text-sm text-gray-500">Management Fee</span><span class="text-sm font-medium text-gray-800">&#8358;{{ investment.management_fee|floatformat:2|intcomma }}</span></div>
         <div class="flex justify-between py-3"><span class="text-sm font-bold text-gray-700">Total Investment</span><span class="text-sm font-bold text-forest-dark">&#8358;{{ investment.investment_amount|floatformat:2|intcomma }}</span></div>
-        {% if investment.weekly_return %}
+{% if investment.weekly_return %}
+{% if investment.payout_frequency == 'weekly' %}
 <div class="flex justify-between py-3">
     <span class="text-sm text-gray-500">Weekly Return</span>
     <span class="text-sm font-medium text-green-600">&#8358;{{ investment.weekly_return|floatformat:2|intcomma }}</span>
 </div>
+{% else %}
 <div class="flex justify-between py-3">
     <span class="text-sm text-gray-500">Monthly Return</span>
     <span class="text-sm font-medium text-green-600">&#8358;{{ investment.monthly_return|floatformat:2|intcomma }}</span>
 </div>
+{% endif %}
 <div class="flex justify-between py-3">
     <span class="text-sm text-gray-500">Total Expected Return{% if investment.duration_weeks %} ({{ investment.duration_weeks }} weeks){% endif %}</span>
     <span class="text-sm font-medium text-green-600">+&#8358;{{ investment.total_roi|floatformat:2|intcomma }}</span>
@@ -107,16 +110,19 @@
 <div class="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8">
     <h2 class="text-base font-bold mb-4" style="color:#1a3a28;">Return Summary</h2>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div>
-            <p class="text-sm text-gray-500">Weekly Return</p>
-            <p class="font-bold mt-1" style="color:#1a3a28;">&#8358;{{ investment.weekly_return|floatformat:2|intcomma }}</p>
-        </div>
-        <div>
-            <p class="text-sm text-gray-500">Monthly Return</p>
-            <p class="font-bold mt-1" style="color:#1a3a28;">&#8358;{{ investment.monthly_return|floatformat:2|intcomma }}</p>
-        </div>
-        <div>
-            <p class="text-sm text-gray-500">Next Payment</p>
+       {% if investment.payout_frequency == 'weekly' %}
+<div>
+    <p class="text-sm text-gray-500">Weekly Return</p>
+    <p class="font-bold mt-1" style="color:#1a3a28;">&#8358;{{ investment.weekly_return|floatformat:2|intcomma }}</p>
+</div>
+{% else %}
+<div>
+    <p class="text-sm text-gray-500">Monthly Return</p>
+    <p class="font-bold mt-1" style="color:#1a3a28;">&#8358;{{ investment.monthly_return|floatformat:2|intcomma }}</p>
+</div>
+{% endif %}
+       
+        <p class="text-sm text-gray-500">Next Payment</p>
             <p class="font-bold mt-1" style="color:#1a3a28;">
                 {% if investment.next_payment_date %}{{ investment.next_payment_date|date:"M d, Y" }}{% else %}—{% endif %}
             </p>
